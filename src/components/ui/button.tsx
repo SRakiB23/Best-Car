@@ -5,6 +5,7 @@ import { cn } from "@/lib/cn";
 const variants = {
   brand: "bg-brand-500 text-white hover:bg-brand-600",
   navy: "bg-navy-900 text-white hover:bg-navy-800",
+  gold: "bg-gold-300 text-night-900 hover:bg-gold-400",
   outline: "border border-line text-ink-700 hover:bg-canvas",
   surface: "bg-surface text-ink-500 hover:bg-line hover:text-navy-900",
   soft: "bg-canvas text-ink-700 hover:bg-line",

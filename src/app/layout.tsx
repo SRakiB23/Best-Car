@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 
 import { getLocale } from "@/lib/account-store";
 import { I18nProvider } from "@/lib/i18n-context";
 import "./globals.css";
 
-const inter = Inter({
+const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-jakarta",
   display: "swap",
 });
 
@@ -22,7 +22,7 @@ export default async function RootLayout({
   const locale = await getLocale();
 
   return (
-    <html lang={locale} className={inter.variable}>
+    <html lang={locale} className={jakarta.variable}>
       <body>
         <I18nProvider locale={locale}>{children}</I18nProvider>
       </body>

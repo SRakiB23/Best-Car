@@ -30,14 +30,42 @@
 
   --color-line: #e8ecf3;
 
-  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04), 0 8px 24px rgb(16 24 40 / 0.05);
+  /* storefront surfaces */
+  --color-wire: #c4c4c4;
+  --color-mist: #f6f7f9;
+  --color-mist-200: #eceef3;
 
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  /* storefront: dark hero + gold accent */
+  --color-night-900: #14181d;
+  --color-night-800: #1d232a;
+  --color-night-700: #2b333c;
+  --color-night-muted: #a8b1bb;
+
+  --color-gold-100: #faf1e2;
+  --color-gold-200: #f2e0c0;
+  --color-gold-300: #e8c68d;
+  --color-gold-400: #dfb46a;
+  --color-gold-500: #cf9a45;
+  --color-gold-600: #b5822f;
+
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04), 0 8px 24px rgb(16 24 40 / 0.05);
+  --shadow-float: 0 2px 4px rgb(9 44 76 / 0.04), 0 18px 40px -12px rgb(9 44 76 / 0.18);
+  --shadow-showcase: 0 18px 30px -18px rgb(0 0 0 / 0.9), 0 40px 80px -30px rgb(0 0 0 / 0.7);
+
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
   body {
     @apply bg-canvas text-ink-700 font-sans text-sm antialiased;
+  }
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 

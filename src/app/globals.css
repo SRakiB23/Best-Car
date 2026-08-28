@@ -1,26 +1,56 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-brand-50: #fff6ee;
+  --color-brand-100: #ffe9d5;
+  --color-brand-200: #ffd3aa;
+  --color-brand-300: #ffbc80;
+  --color-brand-400: #ffae62;
+  --color-brand-500: #ff9f43;
+  --color-brand-600: #f08a26;
+  --color-brand-700: #c46a12;
+  --color-brand-strong: #ff9900;
+
+  --color-navy-700: #14456f;
+  --color-navy-800: #0d3a5e;
+  --color-navy-900: #092c4c;
+
+  --color-canvas: #f5f6fa;
+  --color-surface: #f7f7f7;
+  --color-positive: #28c76f;
+  --color-negative: #ea5455;
+  --color-info: #3fa7e1;
+  --color-link: #3b82f6;
+
+  --color-ink-900: #1b2436;
+  --color-ink-700: #3f4a5c;
+  --color-ink-500: #646b72;
+  --color-ink-400: #92a0b6;
+
+  --color-line: #e8ecf3;
+
+  --shadow-card: 0 1px 2px rgb(16 24 40 / 0.04), 0 8px 24px rgb(16 24 40 / 0.05);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  body {
+    @apply bg-canvas text-ink-700 font-sans text-sm antialiased;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: var(--color-line);
+    border-radius: 9999px;
+  }
 }

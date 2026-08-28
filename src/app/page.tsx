@@ -1,69 +1,124 @@
-import Image from "next/image";
+import { IconCalendar } from "@tabler/icons-react";
 
-export default function Home() {
+import { BestSellerCard } from "@/components/dashboard/best-seller-card";
+import { CountStatCard } from "@/components/dashboard/count-stat-card";
+import { RecentTransactionsCard } from "@/components/dashboard/recent-transactions-card";
+import { SalesAnalyticsCard } from "@/components/dashboard/sales-analytics-card";
+import { SalesByCountriesCard } from "@/components/dashboard/sales-by-countries-card";
+import { WeeklyEarningCard } from "@/components/dashboard/weekly-earning-card";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { FilterSelect } from "@/components/ui/filter-select";
+import { RefreshButton } from "@/components/ui/refresh-button";
+import {
+  getBestSellers,
+  getEarningSummary,
+  getRecentTransactions,
+  getSalesAnalytics,
+  getSalesByCountry,
+} from "@/lib/data";
+import {
+  dateRangeOptions,
+  filterKeys,
+  readFilters,
+  type DashboardSearchParams,
+} from "@/lib/filters";
+import { formatCountPlus } from "@/lib/format";
+import { getCountryShapes } from "@/lib/world-map";
+
+const viewAll = (
+  <Button variant="soft" size="sm">
+    View All
+  </Button>
+);
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<DashboardSearchParams>;
+}) {
+  const { range, year, period } = readFilters(await searchParams);
+
+  const [
+    { weeklyEarning, trend, totalSales, purchasedGoods },
+    bestSellers,
+    transactions,
+    salesPoints,
+    countrySales,
+  ] = await Promise.all([
+    getEarningSummary(range),
+    getBestSellers(range),
+    getRecentTransactions(),
+    getSalesAnalytics(year),
+    getSalesByCountry(period),
+  ]);
+
+  const countryShapes = getCountryShapes();
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="space-y-4 lg:space-y-6">
+      <Card className="flex-col items-start justify-between gap-3 px-4 py-3.5 sm:flex-row sm:items-center sm:px-5">
+        <p className="text-[15px] text-ink-700">
+          <span className="mr-1">👋</span>
+          Hi <span className="font-semibold text-ink-900">Mike Witzel</span>, here&apos;s what&apos;s
+          happening with your store today.
+        </p>
+
+        <div className="flex shrink-0 items-center gap-1.5">
+          <FilterSelect
+            name={filterKeys.range}
+            value={range}
+            options={dateRangeOptions}
+            label="Filter dashboard by date range"
+            icon={<IconCalendar size={16} stroke={1.6} className="text-ink-500" />}
+          />
+          <RefreshButton
+            label="Refresh dashboard"
+            className="grid size-9 place-items-center rounded-lg border border-line text-ink-500 hover:bg-canvas"
+          />
+        </div>
+      </Card>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4 lg:gap-6">
+        <WeeklyEarningCard
+          weeklyEarning={weeklyEarning}
+          trend={trend}
+          className="sm:col-span-2"
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+
+        <CountStatCard
+          icon="/sale.svg"
+          value={formatCountPlus(totalSales)}
+          label="No of Total Sales"
+          tone="brand"
+        />
+
+        <CountStatCard
+          icon="/money.svg"
+          value={formatCountPlus(purchasedGoods)}
+          label="No of Purchased Goods"
+          tone="navy"
+        />
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-5 lg:gap-6">
+        <BestSellerCard items={bestSellers} action={viewAll} className="xl:col-span-2" />
+        <RecentTransactionsCard
+          transactions={transactions}
+          action={viewAll}
+          className="xl:col-span-3"
+        />
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-3 lg:gap-6">
+        <SalesAnalyticsCard points={salesPoints} year={year} className="xl:col-span-2" />
+        <SalesByCountriesCard
+          shapes={countryShapes}
+          sales={countrySales.countries}
+          trend={countrySales.trend}
+          period={period}
+        />
+      </div>
     </div>
   );
 }

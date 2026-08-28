@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   IconBell,
@@ -10,7 +9,6 @@ import {
   IconMail,
   IconMenu2,
   IconReceipt2,
-  IconSearch,
   IconSettings,
   IconUser,
 } from "@tabler/icons-react";
@@ -25,6 +23,7 @@ import { InboxMenu } from "./topbar/inbox-menu";
 import { LanguageMenu } from "./topbar/language-menu";
 import { LinkMenu } from "./topbar/link-menu";
 import { SignOutButton } from "./topbar/sign-out";
+import { SearchBox } from "./topbar/search-box";
 import { StoreSelect } from "./topbar/store-select";
 import { useShell } from "./shell-context";
 
@@ -161,42 +160,5 @@ export function Topbar({ stores, notifications, messages, user }: TopbarData) {
         />
       </div>
     </header>
-  );
-}
-
-function SearchBox() {
-  const input = useRef<HTMLInputElement>(null);
-  const { t } = useI18n();
-
-  useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key.toLowerCase() === "k" && (event.metaKey || event.ctrlKey)) {
-        event.preventDefault();
-        input.current?.focus();
-      }
-    }
-
-    document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
-  }, []);
-
-  return (
-    <form action="/admin/search" className="relative hidden max-w-[280px] flex-1 items-center sm:flex">
-      <IconSearch
-        size={16}
-        stroke={1.8}
-        className="pointer-events-none absolute left-3 text-ink-400"
-      />
-      <input
-        ref={input}
-        type="search"
-        name="q"
-        placeholder={t("Search")}
-        className="h-9 w-full rounded-lg border border-line pl-9 pr-14 text-[13px] text-navy-900 outline-none transition placeholder:text-ink-400 focus:border-brand-300"
-      />
-      <kbd className="absolute right-2 rounded border border-line bg-canvas px-1.5 py-0.5 text-[10px] font-medium text-ink-400">
-        ⌘K
-      </kbd>
-    </form>
   );
 }

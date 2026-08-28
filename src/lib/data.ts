@@ -2,6 +2,7 @@ import { rangeDays, periodDays, comparisonLabel, periodComparison } from "./filt
 import type { ChartYear, DateRange, Period } from "./filters";
 import { pageRange, type ListParams, type SortDirection } from "./list-params";
 import { relativeTime } from "./relative-time";
+import { likeTerm } from "./search";
 import { createClient } from "./supabase/server";
 import type {
   BestSeller,
@@ -203,7 +204,8 @@ export async function getProducts(
     .from("product_list")
     .select("id, name, category, price, stock, image_url, sales, revenue", { count: "exact" });
 
-  if (params.q) query = query.ilike("name", `%${params.q}%`);
+  const term = likeTerm(params.q);
+  if (term) query = query.ilike("name", `%${term}%`);
 
   const result = await query
     .order(productColumns[params.sort], { ascending: params.dir === "asc" })
@@ -232,15 +234,19 @@ export async function getOrders(
   const supabase = await createClient();
   const { from, to } = pageRange(params.page);
 
+  const term = likeTerm(params.q);
+
+  // The unfiltered screen shows a recent slice, but a search has to reach the
+  // whole history or older references would look as though they never existed.
   let query = supabase
-    .from("recent_order_list")
+    .from(term ? "order_list" : "recent_order_list")
     .select(
       "id, reference, payment_method, status, amount, placed_at, product_name, product_image",
       { count: "exact" },
     );
 
-  if (params.q) {
-    query = query.or(`reference.ilike.%${params.q}%,product_name.ilike.%${params.q}%`);
+  if (term) {
+    query = query.or(`reference.ilike.%${term}%,product_name.ilike.%${term}%`);
   }
   if (params.status) query = query.eq("status", params.status);
 

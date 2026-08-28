@@ -48,6 +48,10 @@ const bn: Record<string, string> = {
 
   "Open menu": "মেনু খুলুন",
   Search: "অনুসন্ধান",
+  Transactions: "লেনদেন",
+  Pages: "পৃষ্ঠা",
+  "Searching…": "খোঁজা হচ্ছে…",
+  "No matches found.": "কোনো মিল পাওয়া যায়নি।",
   "Add New": "নতুন যোগ করুন",
   "Point of sale": "পয়েন্ট অব সেল",
   "Open POS register": "পিওএস রেজিস্টার খুলুন",
@@ -208,6 +212,10 @@ const de: Record<string, string> = {
 
   "Open menu": "Menü öffnen",
   Search: "Suchen",
+  Transactions: "Transaktionen",
+  Pages: "Seiten",
+  "Searching…": "Suche…",
+  "No matches found.": "Keine Treffer gefunden.",
   "Add New": "Neu anlegen",
   "Point of sale": "Kasse",
   "Open POS register": "Kasse öffnen",

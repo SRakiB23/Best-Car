@@ -9,13 +9,8 @@ import { ChevronRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 import { useI18n } from "@/lib/i18n-context";
-import { adminRoot, navSections, type NavIconSource, type NavItem } from "@/lib/nav";
+import { adminRoot, isNavActive, navSections, type NavIconSource, type NavItem } from "@/lib/nav";
 import { useShell } from "./shell-context";
-
-function isActive(pathname: string, href: string) {
-  if (href === adminRoot) return pathname === adminRoot;
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
 
 function NavIcon({ icon, className }: { icon: NavIconSource; className?: string }) {
   if (typeof icon !== "string") {
@@ -41,7 +36,8 @@ function NavIcon({ icon, className }: { icon: NavIconSource; className?: string 
 function NavRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
   const pathname = usePathname();
   const { t } = useI18n();
-  const active = isActive(pathname, item.href);
+  const activeChild = (item.children ?? []).some((child) => isNavActive(pathname, child.href));
+  const active = activeChild || isNavActive(pathname, item.href);
   const [open, setOpen] = useState(active);
 
   const rowClasses = cn(
@@ -83,7 +79,7 @@ function NavRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
                   href={child.href}
                   className={cn(
                     "block rounded-md px-3 py-1.5 text-[13px] transition-colors",
-                    pathname === child.href
+                    isNavActive(pathname, child.href)
                       ? "font-medium text-brand-500"
                       : "text-ink-800 hover:text-brand-500",
                   )}

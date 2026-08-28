@@ -19,6 +19,20 @@ export type NavSection = {
   items: NavItem[];
 };
 
+function covers(pathname: string, href: string) {
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+// Several routes nest inside others, so a plain prefix test lights up both
+// "Products" and "Create Product". Only the most specific match wins.
+export function isNavActive(pathname: string, href: string) {
+  if (!covers(pathname, href)) return false;
+
+  return !navHrefs.some(
+    (other) => other.length > href.length && covers(pathname, other),
+  );
+}
+
 export const navSections: NavSection[] = [
   {
     title: "Main",
@@ -90,3 +104,7 @@ export const navSections: NavSection[] = [
     ],
   },
 ];
+
+const navHrefs = navSections.flatMap((section) =>
+  section.items.flatMap((item) => [item.href, ...(item.children ?? []).map((child) => child.href)]),
+);

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/cn";
+import { useDismiss } from "@/lib/use-dismiss";
 import { Tooltip } from "./tooltip";
 
 type PopoverProps = {
@@ -25,25 +26,8 @@ export function Popover({
   const [open, setOpen] = useState(false);
   const container = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!open) return;
-
-    function onPointerDown(event: PointerEvent) {
-      if (!container.current?.contains(event.target as Node)) setOpen(false);
-    }
-
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setOpen(false);
-    }
-
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [open]);
+  const close = useCallback(() => setOpen(false), []);
+  useDismiss(open, container, close);
 
   const button = (
     <button
@@ -73,7 +57,7 @@ export function Popover({
             panelClassName,
           )}
         >
-          {children(() => setOpen(false))}
+          {children(close)}
         </div>
       )}
     </div>

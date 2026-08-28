@@ -29,7 +29,7 @@ export function TabNav<T extends string>({
               aria-selected={active}
               onClick={() => onChange(item.id)}
               className={cn(
-                "relative flex-1 whitespace-nowrap px-6 pb-4 text-base font-semibold transition lg:text-[22px]",
+                "relative flex-1 whitespace-nowrap px-4 pb-3 text-base font-semibold transition sm:px-6 sm:pb-4 lg:text-[22px]",
                 active
                   ? "text-ink-900 after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:rounded-full after:bg-gold-400"
                   : "text-ink-500 hover:text-ink-900",

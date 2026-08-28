@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 
-import { safeNext } from "@/lib/auth";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = {
@@ -25,10 +25,20 @@ export default async function LoginPage({
         <div className="rounded-2xl border border-line bg-white p-6 shadow-sm">
           <h1 className="text-lg font-semibold text-navy-900">Sign in</h1>
           <p className="mb-5 mt-1 text-[13px] text-ink-500">
-            Use your BestCar account to reach the dashboard.
+            Use your BestCar account to book a car or reach the dashboard.
           </p>
 
-          <LoginForm next={safeNext(next ?? "")} />
+          <LoginForm next={next ?? ""} />
+
+          <p className="mt-5 text-center text-[13px] text-ink-500">
+            New to BestCar?{" "}
+            <Link
+              href={next ? `/register?next=${encodeURIComponent(next)}` : "/register"}
+              className="font-medium text-brand-500 hover:text-brand-600"
+            >
+              Create an account
+            </Link>
+          </p>
         </div>
       </div>
     </main>

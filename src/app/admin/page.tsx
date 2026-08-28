@@ -102,14 +102,14 @@ export default async function DashboardPage({
         <CountStatCard
           icon="/sale.svg"
           value={formatCountPlus(totalSales)}
-          label={t("No of Total Sales")}
+          label={t("No of Bookings")}
           tone="brand"
         />
 
         <CountStatCard
           icon="/money.svg"
           value={formatCountPlus(purchasedGoods)}
-          label={t("No of Purchased Goods")}
+          label={t("No of Rental Days")}
           tone="navy"
         />
       </div>

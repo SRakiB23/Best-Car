@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { IconArrowRight, IconChevronRight, IconCrown } from "@tabler/icons-react";
 
 import { BookingSearch } from "@/components/site/booking-search";
@@ -16,14 +17,14 @@ export function Hero() {
           className="pointer-events-none absolute right-0 top-1/2 h-140 w-[75%] -translate-y-1/2 rounded-full bg-gold-400/20 blur-[140px]"
         />
 
-        <Container className="relative grid items-center gap-10 pt-12 lg:grid-cols-2 lg:gap-12 lg:pt-16">
-          <div className="max-w-xl">
+        <Container className="relative grid items-center gap-10 pt-12 sm:gap-12 sm:pt-14 lg:grid-cols-2 lg:pt-16">
+          <div className="max-w-xl lg:mb-14">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 py-1.5 pl-2 pr-4 text-xs text-white">
               <span className="grid size-6 place-items-center rounded-full bg-gold-300/15 text-gold-300">
                 <IconCrown size={14} />
               </span>
               <span className="font-semibold text-gold-300">100%</span>
-              Trusted Car rental platform in the UK
+              Trusted Car rental platform in Bangladesh
             </span>
 
             <h1 className="mt-6 text-3xl font-extrabold uppercase leading-[1.1] tracking-tight text-white sm:text-4xl lg:text-5xl">
@@ -41,13 +42,13 @@ export function Hero() {
                 Booking Now
                 <IconArrowRight size={16} />
               </a>
-              <a
-                href="#cars"
+              <Link
+                href="/cars"
                 className="inline-flex items-center gap-1.5 text-[13px] font-medium text-white hover:text-gold-300"
               >
                 See all cars
                 <IconChevronRight size={16} />
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -65,7 +66,8 @@ export function Hero() {
       </div>
 
       {/* The panel straddles the dark fill and the light section below. */}
-      <Container className="relative z-20 -mt-10 pb-16 sm:-mt-12 lg:-mt-16 lg:pb-24">
+      {/* Only enough bottom room to clear the panel; the next section supplies the real gap. */}
+      <Container className="relative z-20 -mt-10 pb-8 sm:-mt-12 sm:pb-10 lg:-mt-16 lg:pb-12">
         <BookingSearch />
       </Container>
     </section>

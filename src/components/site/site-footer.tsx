@@ -41,8 +41,8 @@ const socials = [
 export function SiteFooter() {
   return (
     <footer className="bg-night-900">
-      <Container className="grid gap-12 py-14 lg:grid-cols-[1.2fr_repeat(3,1fr)] lg:gap-10 lg:py-16">
-        <div className="max-w-sm">
+      <Container className="grid gap-10 py-14 sm:grid-cols-2 sm:py-16 lg:grid-cols-[1.2fr_repeat(3,1fr)] lg:py-20">
+        <div className="max-w-sm sm:col-span-2 lg:col-span-1">
           <Image
             src="/client-side/BestCarLogo.jpeg"
             alt="Best Car"
@@ -90,10 +90,10 @@ export function SiteFooter() {
       </Container>
 
       <div className="bg-mist-200">
-        <Container className="flex flex-col items-center gap-4 py-5 text-base font-semibold text-ink-700 sm:flex-row sm:justify-between">
+        <Container className="flex flex-col items-center gap-3 py-5 text-center text-sm font-semibold text-ink-700 sm:flex-row sm:justify-between sm:gap-4 sm:text-left sm:text-base">
           <p>&copy;2026 Best Auto. All rights reserved</p>
 
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-6 sm:gap-8">
             <Link href="#privacy" className="transition hover:text-gold-600">
               Privacy &amp; Policy
             </Link>

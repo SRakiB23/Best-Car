@@ -17,7 +17,13 @@ import { chartYearOptions, filterKeys, type ChartYear } from "@/lib/filters";
 import { useI18n } from "@/lib/i18n-context";
 import type { SalesPoint } from "@/lib/types";
 
-const ticks = [10000, 20000, 30000, 40000, 50000, 60000];
+/** Rounds the top of the axis up to a clean step so real data is never clipped. */
+function axisTicks(points: SalesPoint[]) {
+  const peak = Math.max(0, ...points.map((point) => point.value));
+  const step = Math.max(10_000, Math.ceil(peak / 6 / 10_000) * 10_000);
+
+  return Array.from({ length: 6 }, (_, index) => step * (index + 1));
+}
 
 const axisStyle = {
   tick: { fill: "var(--color-ink-500)", fontSize: 12 },
@@ -35,6 +41,7 @@ export function SalesAnalyticsCard({
   className?: string;
 }) {
   const { t } = useI18n();
+  const ticks = axisTicks(points);
 
   return (
     <Card className={className}>
@@ -66,7 +73,7 @@ export function SalesAnalyticsCard({
 
               <XAxis dataKey="month" dy={8} {...axisStyle} />
               <YAxis
-                domain={[10000, 60000]}
+                domain={[ticks[0], ticks[ticks.length - 1]]}
                 ticks={ticks}
                 tickFormatter={(value: number) => `${value / 1000}k`}
                 {...axisStyle}

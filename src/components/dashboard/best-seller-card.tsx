@@ -16,7 +16,7 @@ export async function BestSellerCard({ items, currency, action, className }: Bes
 
   return (
     <Card className={className}>
-      <CardHeader title={t("Best Seller")} action={action} />
+      <CardHeader title={t("Most Rented")} action={action} />
 
       <CardBody className="space-y-4">
         {items.map((item) => (
@@ -29,7 +29,7 @@ export async function BestSellerCard({ items, currency, action, className }: Bes
             </div>
 
             <div className="shrink-0 text-right">
-              <p className="text-xs text-ink-500">Sales</p>
+              <p className="text-xs text-ink-500">{t("Days")}</p>
               <p className="mt-0.5 text-[13px] font-semibold text-navy-900">
                 {item.sales.toLocaleString("en-US")}
               </p>

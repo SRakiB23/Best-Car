@@ -121,8 +121,20 @@ export async function deleteProduct(_previous: FormState, form: FormData): Promi
 
   if (!product.data) return { status: "error", message: "That product no longer exists." };
 
-  // Deleting cascades into orders, so a car that has sold is never removable,
-  // however the request reaches this action.
+  // bookings.vehicle_id is on delete restrict, so a rented car would fail at the
+  // database with a raw foreign key error. Say so plainly instead.
+  const booked = await supabase
+    .from("bookings")
+    .select("id", { count: "exact", head: true })
+    .eq("vehicle_id", id);
+
+  if (booked.count && booked.count > 0) {
+    return {
+      status: "error",
+      message: `${product.data.name} has ${booked.count} booking(s) against it and cannot be deleted.`,
+    };
+  }
+
   const { count } = await supabase
     .from("orders")
     .select("id", { count: "exact", head: true })
@@ -131,7 +143,7 @@ export async function deleteProduct(_previous: FormState, form: FormData): Promi
   if (count && count > 0) {
     return {
       status: "error",
-      message: `${product.data.name} has ${count} orders behind it and cannot be deleted.`,
+      message: `${product.data.name} has ${count} rental(s) behind it and cannot be deleted.`,
     };
   }
 

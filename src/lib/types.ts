@@ -64,6 +64,7 @@ export type Notification = {
   detail: string;
   receivedAgo: string;
   unread: boolean;
+  link?: string;
 };
 
 export type Message = {
@@ -104,6 +105,27 @@ export type ProductRow = {
 
 export type OrderRow = Transaction & {
   placedAt: string;
+};
+
+export type BookingStatus = "confirmed" | "cancelled";
+
+export type BookingRow = {
+  id: string;
+  reference: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  pickupLocation: string;
+  startDate: string;
+  endDate: string;
+  days: number;
+  pricePerDay: Money;
+  totalAmount: Money;
+  status: BookingStatus;
+  bookedAgo: string;
+  vehicle: string;
+  vehicleCategory: string;
+  image?: string;
 };
 
 export type ListResult<T> = {

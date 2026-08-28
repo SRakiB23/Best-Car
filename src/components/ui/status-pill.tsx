@@ -1,12 +1,13 @@
-import type { PaymentStatus } from "@/lib/types";
+import type { BookingStatus, PaymentStatus } from "@/lib/types";
 
-const tones: Record<PaymentStatus, { label: string; className: string }> = {
+const tones: Record<PaymentStatus | BookingStatus, { label: string; className: string }> = {
   success: { label: "Success", className: "bg-positive" },
   cancelled: { label: "Cancelled", className: "bg-negative" },
   pending: { label: "Pending", className: "bg-info" },
+  confirmed: { label: "Confirmed", className: "bg-positive" },
 };
 
-export function StatusPill({ status }: { status: PaymentStatus }) {
+export function StatusPill({ status }: { status: PaymentStatus | BookingStatus }) {
   const { label, className } = tones[status];
 
   return (

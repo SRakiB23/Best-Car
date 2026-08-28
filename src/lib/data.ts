@@ -6,6 +6,8 @@ import { likeTerm } from "./search";
 import { createClient } from "./supabase/server";
 import type {
   BestSeller,
+  BookingRow,
+  BookingStatus,
   ListResult,
   OrderRow,
   PaymentStatus,
@@ -139,7 +141,7 @@ export async function getNotifications(): Promise<Notification[]> {
   const rows = unwrap(
     await supabase
       .from("notifications")
-      .select("id, title, detail, created_at, read_at")
+      .select("id, title, detail, link, created_at, read_at")
       .order("created_at", { ascending: false }),
     "notifications",
   );
@@ -150,6 +152,7 @@ export async function getNotifications(): Promise<Notification[]> {
     detail: row.detail,
     receivedAgo: relativeTime(row.created_at),
     unread: row.read_at === null,
+    link: row.link || undefined,
   }));
 }
 
@@ -174,9 +177,11 @@ export async function getMessages(): Promise<Message[]> {
 
 export const productSortKeys = ["name", "category", "price", "stock", "sales"] as const;
 export const orderSortKeys = ["product", "payment", "status", "amount", "date"] as const;
+export const bookingSortKeys = ["vehicle", "customer", "pickup", "status", "amount", "date"] as const;
 
 export type ProductSortKey = (typeof productSortKeys)[number];
 export type OrderSortKey = (typeof orderSortKeys)[number];
+export type BookingSortKey = (typeof bookingSortKeys)[number];
 
 const productColumns: Record<ProductSortKey, string> = {
   name: "name",
@@ -192,6 +197,15 @@ const orderColumns: Record<OrderSortKey, string> = {
   status: "status",
   amount: "amount",
   date: "placed_at",
+};
+
+const bookingColumns: Record<BookingSortKey, string> = {
+  vehicle: "vehicle_name",
+  customer: "customer_name",
+  pickup: "start_date",
+  status: "status",
+  amount: "total_amount",
+  date: "created_at",
 };
 
 export async function getProducts(
@@ -223,6 +237,56 @@ export async function getProducts(
       sales: Number(row.sales),
       revenue: Number(row.revenue),
       image: row.image_url || undefined,
+    })),
+    total: result.count ?? 0,
+  };
+}
+
+export async function getBookings(
+  params: ListParams<BookingSortKey> & { status: BookingStatus | "" },
+): Promise<ListResult<BookingRow>> {
+  const supabase = await createClient();
+  const { from, to } = pageRange(params.page);
+
+  let query = supabase
+    .from("booking_list")
+    .select(
+      "id, reference, customer_name, customer_email, customer_phone, pickup_location, start_date, end_date, days, price_per_day, total_amount, status, created_at, vehicle_name, vehicle_image, vehicle_category",
+      { count: "exact" },
+    );
+
+  const term = likeTerm(params.q);
+  if (term) {
+    query = query.or(
+      `reference.ilike.%${term}%,customer_name.ilike.%${term}%,customer_email.ilike.%${term}%,vehicle_name.ilike.%${term}%`,
+    );
+  }
+  if (params.status) query = query.eq("status", params.status);
+
+  const result = await query
+    .order(bookingColumns[params.sort], { ascending: params.dir === "asc" })
+    .range(from, to);
+
+  const rows = unwrap(result, "bookings") ?? [];
+
+  return {
+    rows: rows.map((row) => ({
+      id: row.id!,
+      reference: row.reference!,
+      customerName: row.customer_name!,
+      customerEmail: row.customer_email!,
+      customerPhone: row.customer_phone!,
+      pickupLocation: row.pickup_location!,
+      startDate: row.start_date!,
+      endDate: row.end_date!,
+      days: Number(row.days),
+      pricePerDay: Number(row.price_per_day),
+      totalAmount: Number(row.total_amount),
+      status: row.status! as BookingStatus,
+      bookedAgo: relativeTime(row.created_at!),
+      vehicle: row.vehicle_name!,
+      vehicleCategory: row.vehicle_category!,
+      image: row.vehicle_image || undefined,
     })),
     total: result.count ?? 0,
   };

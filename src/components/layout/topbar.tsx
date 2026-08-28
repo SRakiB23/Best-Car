@@ -108,6 +108,7 @@ export function Topbar({ stores, notifications, messages, user }: TopbarData) {
             label={t("Messages")}
             title={t("Messages")}
             emptyText={t("No messages yet.")}
+            inbox="messages"
             triggerClassName={iconButton}
             icon={<IconMail size={18} stroke={1.8} />}
             entries={messages.map((message) => ({
@@ -123,6 +124,7 @@ export function Topbar({ stores, notifications, messages, user }: TopbarData) {
             label={t("Notifications")}
             title={t("Notifications")}
             emptyText={t("Nothing to report.")}
+            inbox="notifications"
             triggerClassName={iconButton}
             icon={<IconBell size={18} stroke={1.8} />}
             entries={notifications.map((notification) => ({
@@ -131,6 +133,7 @@ export function Topbar({ stores, notifications, messages, user }: TopbarData) {
               body: notification.detail,
               receivedAgo: notification.receivedAgo,
               unread: notification.unread,
+              href: notification.link,
             }))}
           />
 

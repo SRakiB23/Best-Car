@@ -1,11 +1,12 @@
 import { Carousel } from "@/components/site/carousel";
-import { Container, SectionHeading } from "@/components/site/section";
+import { Container, SectionHeading, sectionGap, sectionPadding } from "@/components/site/section";
+import { cn } from "@/lib/cn";
 import { TestimonialCard } from "@/components/site/testimonial-card";
 import { testimonials } from "@/lib/testimonials";
 
 export function Testimonials() {
   return (
-    <section id="testimonial" className="bg-mist py-16 lg:py-24">
+    <section id="testimonial" className={cn("bg-mist", sectionPadding)}>
       <Container>
         <SectionHeading
           title="Trusted by Thousands of Happy Customers"
@@ -17,7 +18,7 @@ export function Testimonials() {
           label="Customer testimonials"
           controls="labels"
           gap={32}
-          className="mt-12 lg:mt-16"
+          className={sectionGap}
           slideClassName="sm:basis-[calc((100%-32px)/2)] lg:basis-[calc((100%-64px)/3)]"
         >
           {testimonials.map((testimonial) => (

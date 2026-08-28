@@ -1,22 +1,25 @@
-import Image from "next/image";
-import Link from "next/link";
-
-import { buttonClass } from "@/components/ui/button";
+import { FleetShowcase } from "@/components/site/fleet-showcase";
+import { Hero } from "@/components/site/hero";
+import { HowItWorks } from "@/components/site/how-it-works";
+import { PopularDeals } from "@/components/site/popular-deals";
+import { SiteFooter } from "@/components/site/site-footer";
+import { SiteHeader } from "@/components/site/site-header";
+import { Testimonials } from "@/components/site/testimonials";
+import { WhyChooseUs } from "@/components/site/why-choose-us";
 
 export default function StorefrontPage() {
   return (
-    <main className="grid min-h-dvh place-items-center bg-canvas px-6">
-      <div className="flex flex-col items-center gap-5 text-center">
-        <Image src="/Logo.svg" alt="BestCar" width={160} height={50} priority />
-
-        <p className="max-w-sm text-[13px] text-ink-500">
-          The customer storefront lives here. It has not been designed yet.
-        </p>
-
-        <Link href="/admin" className={buttonClass("brand")}>
-          Go to dashboard
-        </Link>
-      </div>
-    </main>
+    <div className="relative min-h-dvh bg-white">
+      <SiteHeader />
+      <main>
+        <Hero />
+        <HowItWorks />
+        <PopularDeals />
+        <WhyChooseUs />
+        <FleetShowcase />
+        <Testimonials />
+      </main>
+      <SiteFooter />
+    </div>
   );
 }

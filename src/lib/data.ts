@@ -8,7 +8,6 @@ import {
 import type {
   BestSeller,
   CountrySalesSummary,
-  CurrentUser,
   EarningSummary,
   Message,
   Notification,
@@ -196,11 +195,3 @@ export async function getMessages(): Promise<Message[]> {
   ];
 }
 
-export async function getCurrentUser(): Promise<CurrentUser> {
-  return {
-    name: "Mike Witzel",
-    role: "Store Administrator",
-    email: "mike.witzel@bestcar.com",
-    initials: "MW",
-  };
-}

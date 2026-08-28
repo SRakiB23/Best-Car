@@ -93,11 +93,13 @@ export function PopoverItem({
   icon,
   children,
   onClick,
+  disabled,
   className,
 }: {
   icon?: ReactNode;
   children: ReactNode;
   onClick?: () => void;
+  disabled?: boolean;
   className?: string;
 }) {
   return (
@@ -105,8 +107,9 @@ export function PopoverItem({
       type="button"
       role="menuitem"
       onClick={onClick}
+      disabled={disabled}
       className={cn(
-        "flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[13px] text-ink-700 transition hover:bg-canvas hover:text-navy-900",
+        "flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[13px] text-ink-700 transition hover:bg-canvas hover:text-navy-900 disabled:pointer-events-none disabled:opacity-50",
         className,
       )}
     >

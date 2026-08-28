@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { IconAlertCircle, IconCheck, IconPlus } from "@tabler/icons-react";
+import { IconCheck, IconPlus } from "@tabler/icons-react";
 
 import { Button } from "@/components/ui/button";
+import { Field, controlClass } from "@/components/ui/field";
 import { Modal } from "@/components/ui/modal";
 import { Tooltip } from "@/components/ui/tooltip";
+import { useI18n } from "@/lib/i18n-context";
+
 
 const categories = ["SUV", "Sedan", "Hatchback", "Coupe", "Pickup"];
 
@@ -26,10 +29,8 @@ function validate({ name, price, quantity }: Fields): Errors {
   return errors;
 }
 
-const fieldClass =
-  "h-10 w-full rounded-lg border border-line px-3 text-[13px] text-navy-900 outline-none transition placeholder:text-ink-400 focus:border-brand-300";
-
 export function AddNewModal() {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [fields, setFields] = useState<Fields>(empty);
   const [errors, setErrors] = useState<Errors>({});
@@ -61,7 +62,7 @@ export function AddNewModal() {
       <Tooltip label="Add a new product">
         <Button variant="brand" onClick={() => setOpen(true)} className="hidden sm:inline-flex">
           <IconPlus size={16} stroke={2.4} />
-          Add New
+          {t("Add New")}
         </Button>
       </Tooltip>
 
@@ -99,7 +100,7 @@ export function AddNewModal() {
             <div className="grid gap-4 px-5 py-5 sm:grid-cols-2">
               <Field label="Product name" error={errors.name} className="sm:col-span-2">
                 <input
-                  className={fieldClass}
+                  className={controlClass}
                   placeholder="Range Rover Sport"
                   value={fields.name}
                   onChange={(event) => update("name", event.target.value)}
@@ -108,7 +109,7 @@ export function AddNewModal() {
 
               <Field label="Category">
                 <select
-                  className={fieldClass}
+                  className={controlClass}
                   value={fields.category}
                   onChange={(event) => update("category", event.target.value)}
                 >
@@ -120,7 +121,7 @@ export function AddNewModal() {
 
               <Field label="Price (USD)" error={errors.price}>
                 <input
-                  className={fieldClass}
+                  className={controlClass}
                   inputMode="decimal"
                   placeholder="1499.00"
                   value={fields.price}
@@ -130,7 +131,7 @@ export function AddNewModal() {
 
               <Field label="Quantity" error={errors.quantity}>
                 <input
-                  className={fieldClass}
+                  className={controlClass}
                   inputMode="numeric"
                   value={fields.quantity}
                   onChange={(event) => update("quantity", event.target.value)}
@@ -151,27 +152,3 @@ export function AddNewModal() {
   );
 }
 
-function Field({
-  label,
-  error,
-  className,
-  children,
-}: {
-  label: string;
-  error?: string;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className={className}>
-      <span className="mb-1.5 block text-xs font-medium text-ink-700">{label}</span>
-      {children}
-      {error && (
-        <span className="mt-1 flex items-center gap-1 text-xs text-negative">
-          <IconAlertCircle size={13} stroke={2} />
-          {error}
-        </span>
-      )}
-    </label>
-  );
-}

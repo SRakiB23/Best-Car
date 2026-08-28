@@ -72,9 +72,19 @@ export type Message = {
   unread: boolean;
 };
 
-export type CurrentUser = {
+export type Account = {
   name: string;
   role: string;
   email: string;
-  initials: string;
+  phone: string;
+  avatarUrl: string;
+};
+
+export type CurrencyCode = "USD" | "EUR" | "GBP" | "BDT";
+
+export type Preferences = {
+  storeName: string;
+  currency: CurrencyCode;
+  timezone: string;
+  lowStockThreshold: number;
 };

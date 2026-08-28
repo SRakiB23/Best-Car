@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
-import { AppShell } from "@/components/layout/app-shell";
-import { getCurrentUser, getMessages, getNotifications, getStores } from "@/lib/data";
+import { getLocale } from "@/lib/account-store";
+import { I18nProvider } from "@/lib/i18n-context";
 import "./globals.css";
 
 const inter = Inter({
@@ -12,24 +12,19 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "BestCar — Dashboard",
+  title: "BestCar",
   description: "Inventory, stock and sales management for car dealerships.",
 };
 
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [stores, notifications, messages, user] = await Promise.all([
-    getStores(),
-    getNotifications(),
-    getMessages(),
-    getCurrentUser(),
-  ]);
+  const locale = await getLocale();
 
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang={locale} className={inter.variable}>
       <body>
-        <AppShell topbar={{ stores, notifications, messages, user }}>{children}</AppShell>
+        <I18nProvider locale={locale}>{children}</I18nProvider>
       </body>
     </html>
   );

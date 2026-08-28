@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { IconArrowUp } from "@tabler/icons-react";
 
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { cn } from "@/lib/cn";
 import { filterKeys, periodOptions, type Period } from "@/lib/filters";
+import { useI18n } from "@/lib/i18n-context";
 import type { CountrySales, Trend } from "@/lib/types";
 import { mapSize, type CountryShape } from "@/lib/world-map";
+import { TrendNote } from "./trend-note";
 
 type SalesByCountriesCardProps = {
   shapes: CountryShape[];
@@ -25,6 +26,7 @@ export function SalesByCountriesCard({
   period,
   className,
 }: SalesByCountriesCardProps) {
+  const { t } = useI18n();
   const [hovered, setHovered] = useState<CountrySales | null>(null);
 
   const ranked = [...sales].sort((a, b) => b.sales - a.sales);
@@ -33,18 +35,16 @@ export function SalesByCountriesCard({
   );
   const byCode = new Map(sales.map((item) => [item.isoNumericCode, item]));
 
-  const rising = trend.direction === "up";
-
   return (
     <Card className={className}>
       <CardHeader
-        title="Sales by Countries"
+        title={t("Sales by Countries")}
         action={
           <FilterSelect
             name={filterKeys.period}
             value={period}
             options={periodOptions}
-            label="Filter sales by period"
+            label={t("Filter sales by period")}
           />
         }
       />
@@ -90,17 +90,7 @@ export function SalesByCountriesCard({
           )}
         </div>
 
-        <p className="flex items-center justify-center gap-1 text-[13px] text-ink-500">
-          <IconArrowUp
-            size={14}
-            stroke={2.4}
-            className={cn(rising ? "text-positive" : "rotate-180 text-negative")}
-          />
-          <span className={cn("font-semibold", rising ? "text-positive" : "text-negative")}>
-            {trend.percent}%
-          </span>
-          {rising ? "increase" : "decrease"} compare to {trend.comparedTo}
-        </p>
+        <TrendNote trend={trend} t={t} className="justify-center" />
       </CardBody>
     </Card>
   );

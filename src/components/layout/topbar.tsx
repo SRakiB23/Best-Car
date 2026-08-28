@@ -5,7 +5,6 @@ import {
   IconBell,
   IconCashRegister,
   IconClipboardList,
-  IconLifebuoy,
   IconLock,
   IconMail,
   IconMenu2,
@@ -17,8 +16,10 @@ import {
   IconWorld,
 } from "@tabler/icons-react";
 
+import { Avatar } from "@/components/ui/avatar";
 import { Tooltip } from "@/components/ui/tooltip";
-import type { CurrentUser, Message, Notification, Store } from "@/lib/types";
+import { useI18n } from "@/lib/i18n-context";
+import type { Account, Message, Notification, Store } from "@/lib/types";
 import { AddNewModal } from "./topbar/add-new-modal";
 import { FullscreenToggle } from "./topbar/fullscreen-toggle";
 import { InboxMenu } from "./topbar/inbox-menu";
@@ -31,45 +32,51 @@ const iconButton =
   "relative grid size-9 place-items-center rounded-lg bg-surface text-ink-500 transition hover:bg-line hover:text-navy-900";
 
 const posLinks = [
-  { label: "Open POS register", href: "/pos", icon: <IconCashRegister size={16} stroke={1.6} /> },
-  { label: "POS orders", href: "/sales/pos-orders", icon: <IconReceipt2 size={16} stroke={1.6} /> },
+  { label: "Open POS register", href: "/admin/pos", icon: <IconCashRegister size={16} stroke={1.6} /> },
+  { label: "POS orders", href: "/admin/sales/pos-orders", icon: <IconReceipt2 size={16} stroke={1.6} /> },
   {
     label: "Register shifts",
-    href: "/pos/shifts",
+    href: "/admin/pos/shifts",
     icon: <IconClipboardList size={16} stroke={1.6} />,
   },
 ];
 
 const settingsLinks = [
-  { label: "General settings", href: "/settings", icon: <IconSettings size={16} stroke={1.6} /> },
-  { label: "Website settings", href: "/settings/website", icon: <IconWorld size={16} stroke={1.6} /> },
-  { label: "Tax rates", href: "/settings/tax-rates", icon: <IconTag size={16} stroke={1.6} /> },
+  { label: "General settings", href: "/admin/settings", icon: <IconSettings size={16} stroke={1.6} /> },
+  { label: "Website settings", href: "/admin/settings/website", icon: <IconWorld size={16} stroke={1.6} /> },
+  { label: "Tax rates", href: "/admin/settings/tax-rates", icon: <IconTag size={16} stroke={1.6} /> },
 ];
 
 export type TopbarData = {
   stores: Store[];
   notifications: Notification[];
   messages: Message[];
-  user: CurrentUser;
+  user: Account;
 };
 
 export function Topbar({ stores, notifications, messages, user }: TopbarData) {
   const { setMobileOpen } = useShell();
+  const { t } = useI18n();
+  const translateLinks = (links: { label: string; href: string; icon: React.ReactNode }[]) =>
+    links.map((link) => ({ ...link, label: t(link.label) }));
 
   const profileLinks = [
-    { label: "My profile", href: "/profile", icon: <IconUser size={16} stroke={1.6} /> },
-    { label: "Account settings", href: "/settings", icon: <IconSettings size={16} stroke={1.6} /> },
-    { label: "Change password", href: "/profile/password", icon: <IconLock size={16} stroke={1.6} /> },
-    { label: "Help centre", href: "/support", icon: <IconLifebuoy size={16} stroke={1.6} /> },
+    { label: "My profile", href: "/admin/profile", icon: <IconUser size={16} stroke={1.6} /> },
+    { label: "Account settings", href: "/admin/settings", icon: <IconSettings size={16} stroke={1.6} /> },
+    {
+      label: "Change password",
+      href: "/admin/profile/password",
+      icon: <IconLock size={16} stroke={1.6} />,
+    },
   ];
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-line bg-white px-4 lg:px-6">
-      <Tooltip label="Open menu">
+      <Tooltip label={t("Open menu")}>
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
-          aria-label="Open menu"
+          aria-label={t("Open menu")}
           className="grid size-9 shrink-0 place-items-center rounded-lg text-ink-500 hover:bg-canvas lg:hidden"
         >
           <IconMenu2 size={20} stroke={1.8} />
@@ -86,7 +93,7 @@ export function Topbar({ stores, notifications, messages, user }: TopbarData) {
         <AddNewModal />
 
         <LinkMenu
-          label="Point of sale"
+          label={t("Point of sale")}
           triggerClassName="hidden h-9 gap-1.5 bg-navy-900 px-3 text-[13px] font-semibold text-white hover:bg-navy-800 sm:inline-flex"
           trigger={
             <>
@@ -94,7 +101,7 @@ export function Topbar({ stores, notifications, messages, user }: TopbarData) {
               POS
             </>
           }
-          links={posLinks}
+          links={translateLinks(posLinks)}
         />
 
         <div className="mx-1 hidden h-6 w-px bg-line lg:block" />
@@ -105,9 +112,9 @@ export function Topbar({ stores, notifications, messages, user }: TopbarData) {
           <FullscreenToggle className={iconButton} />
 
           <InboxMenu
-            label="Messages"
-            title="Messages"
-            emptyText="No messages yet."
+            label={t("Messages")}
+            title={t("Messages")}
+            emptyText={t("No messages yet.")}
             triggerClassName={iconButton}
             icon={<IconMail size={18} stroke={1.8} />}
             entries={messages.map((message) => ({
@@ -120,9 +127,9 @@ export function Topbar({ stores, notifications, messages, user }: TopbarData) {
           />
 
           <InboxMenu
-            label="Notifications"
-            title="Notifications"
-            emptyText="Nothing to report."
+            label={t("Notifications")}
+            title={t("Notifications")}
+            emptyText={t("Nothing to report.")}
             triggerClassName={iconButton}
             icon={<IconBell size={18} stroke={1.8} />}
             entries={notifications.map((notification) => ({
@@ -135,18 +142,20 @@ export function Topbar({ stores, notifications, messages, user }: TopbarData) {
           />
 
           <LinkMenu
-            label="Settings"
+            label={t("Settings")}
             triggerClassName={iconButton}
             trigger={<IconSettings size={18} stroke={1.8} />}
-            links={settingsLinks}
+            links={translateLinks(settingsLinks)}
           />
         </div>
 
         <LinkMenu
           label={`Account: ${user.name}`}
-          triggerClassName="ml-1 size-9 rounded-full bg-brand-100 text-[13px] font-semibold text-brand-700 ring-2 ring-brand-200 hover:bg-brand-200"
+          triggerClassName="ml-1 rounded-full ring-2 ring-brand-200"
           panelClassName="min-w-[240px]"
-          trigger={user.initials}
+          trigger={
+            <Avatar name={user.name} src={user.avatarUrl || undefined} className="text-[13px]" />
+          }
           header={
             <div className="border-b border-line px-4 py-3">
               <p className="text-[13px] font-semibold text-navy-900">{user.name}</p>
@@ -154,8 +163,8 @@ export function Topbar({ stores, notifications, messages, user }: TopbarData) {
               <p className="mt-0.5 truncate text-xs text-ink-400">{user.email}</p>
             </div>
           }
-          links={profileLinks}
-          footer={<MenuFooterLink href="/logout">Sign out</MenuFooterLink>}
+          links={translateLinks(profileLinks)}
+          footer={<MenuFooterLink href="/logout">{t("Sign out")}</MenuFooterLink>}
         />
       </div>
     </header>
@@ -164,6 +173,7 @@ export function Topbar({ stores, notifications, messages, user }: TopbarData) {
 
 function SearchBox() {
   const input = useRef<HTMLInputElement>(null);
+  const { t } = useI18n();
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -178,7 +188,7 @@ function SearchBox() {
   }, []);
 
   return (
-    <form action="/search" className="relative hidden max-w-[280px] flex-1 items-center sm:flex">
+    <form action="/admin/search" className="relative hidden max-w-[280px] flex-1 items-center sm:flex">
       <IconSearch
         size={16}
         stroke={1.8}
@@ -188,7 +198,7 @@ function SearchBox() {
         ref={input}
         type="search"
         name="q"
-        placeholder="Search"
+        placeholder={t("Search")}
         className="h-9 w-full rounded-lg border border-line pl-9 pr-14 text-[13px] text-navy-900 outline-none transition placeholder:text-ink-400 focus:border-brand-300"
       />
       <kbd className="absolute right-2 rounded border border-line bg-canvas px-1.5 py-0.5 text-[10px] font-medium text-ink-400">

@@ -14,6 +14,7 @@ import {
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { chartYearOptions, filterKeys, type ChartYear } from "@/lib/filters";
+import { useI18n } from "@/lib/i18n-context";
 import type { SalesPoint } from "@/lib/types";
 
 const ticks = [10000, 20000, 30000, 40000, 50000, 60000];
@@ -33,16 +34,18 @@ export function SalesAnalyticsCard({
   year: ChartYear;
   className?: string;
 }) {
+  const { t } = useI18n();
+
   return (
     <Card className={className}>
       <CardHeader
-        title="Sales Analytics"
+        title={t("Sales Analytics")}
         action={
           <FilterSelect
             name={filterKeys.year}
             value={year}
             options={chartYearOptions}
-            label="Filter sales analytics by year"
+            label={t("Filter sales analytics by year")}
             icon={<IconCalendar size={14} stroke={1.6} className="text-ink-500" />}
           />
         }

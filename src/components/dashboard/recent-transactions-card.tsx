@@ -8,7 +8,8 @@ import { StatusPill } from "@/components/ui/status-pill";
 import { Thumbnail } from "@/components/ui/thumbnail";
 import { cn } from "@/lib/cn";
 import { formatAmount } from "@/lib/format";
-import type { Transaction } from "@/lib/types";
+import { useI18n } from "@/lib/i18n-context";
+import type { CurrencyCode, Transaction } from "@/lib/types";
 
 type SortKey = "product" | "paymentMethod" | "status" | "amount";
 type SortDirection = "asc" | "desc";
@@ -34,13 +35,16 @@ function compare(a: Transaction, b: Transaction, key: SortKey) {
 
 export function RecentTransactionsCard({
   transactions,
+  currency,
   action,
   className,
 }: {
   transactions: Transaction[];
+  currency: CurrencyCode;
   action?: React.ReactNode;
   className?: string;
 }) {
+  const { t } = useI18n();
   const [sort, setSort] = useState<{ key: SortKey; direction: SortDirection } | null>(null);
 
   const rows = useMemo(() => {
@@ -62,7 +66,7 @@ export function RecentTransactionsCard({
 
   return (
     <Card className={className}>
-      <CardHeader title="Recent Transactions" action={action} />
+      <CardHeader title={t("Recent Transactions")} action={action} />
 
       <div className="scrollbar-thin overflow-x-auto">
         <table className="w-full min-w-[560px] border-collapse text-left">
@@ -146,7 +150,7 @@ export function RecentTransactionsCard({
                 <td
                   className={cn(cell, "whitespace-nowrap text-[13px] font-semibold text-navy-900")}
                 >
-                  {formatAmount(transaction.amount)}
+                  {formatAmount(transaction.amount, currency)}
                 </td>
               </tr>
             ))}

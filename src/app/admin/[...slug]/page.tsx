@@ -1,7 +1,8 @@
 import { IconTool } from "@tabler/icons-react";
 
 import { Card, CardBody } from "@/components/ui/card";
-import { navSections } from "@/lib/nav";
+import { getTranslator } from "@/lib/account-store";
+import { adminRoot, navSections } from "@/lib/nav";
 
 function titleFor(path: string) {
   for (const section of navSections) {
@@ -22,7 +23,8 @@ function titleFor(path: string) {
 
 export default async function StubPage({ params }: { params: Promise<{ slug: string[] }> }) {
   const { slug } = await params;
-  const path = `/${slug.join("/")}`;
+  const path = `${adminRoot}/${slug.join("/")}`;
+  const t = await getTranslator();
 
   return (
     <Card>
@@ -30,7 +32,7 @@ export default async function StubPage({ params }: { params: Promise<{ slug: str
         <span className="grid size-12 place-items-center rounded-full bg-brand-50 text-brand-500">
           <IconTool size={22} stroke={1.6} />
         </span>
-        <h1 className="text-lg font-semibold text-navy-900">{titleFor(path)}</h1>
+        <h1 className="text-lg font-semibold text-navy-900">{t(titleFor(path))}</h1>
         <p className="max-w-sm text-[13px] text-ink-500">
           This screen is not built yet. The dashboard is the completed section.
         </p>

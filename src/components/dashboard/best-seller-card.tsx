@@ -1,18 +1,22 @@
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Thumbnail } from "@/components/ui/thumbnail";
+import { getTranslator } from "@/lib/account-store";
 import { formatAmount } from "@/lib/format";
-import type { BestSeller } from "@/lib/types";
+import type { BestSeller, CurrencyCode } from "@/lib/types";
 
 type BestSellerCardProps = {
   items: BestSeller[];
+  currency: CurrencyCode;
   action?: React.ReactNode;
   className?: string;
 };
 
-export function BestSellerCard({ items, action, className }: BestSellerCardProps) {
+export async function BestSellerCard({ items, currency, action, className }: BestSellerCardProps) {
+  const t = await getTranslator();
+
   return (
     <Card className={className}>
-      <CardHeader title="Best Seller" action={action} />
+      <CardHeader title={t("Best Seller")} action={action} />
 
       <CardBody className="space-y-4">
         {items.map((item) => (
@@ -21,7 +25,7 @@ export function BestSellerCard({ items, action, className }: BestSellerCardProps
 
             <div className="min-w-0 flex-1">
               <p className="truncate text-[13px] font-semibold text-navy-900">{item.name}</p>
-              <p className="mt-0.5 text-xs text-ink-500">{formatAmount(item.price)}</p>
+              <p className="mt-0.5 text-xs text-ink-500">{formatAmount(item.price, currency)}</p>
             </div>
 
             <div className="shrink-0 text-right">

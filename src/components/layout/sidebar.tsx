@@ -8,11 +8,13 @@ import { ChevronRight, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
-import { navSections, type NavIconSource, type NavItem } from "@/lib/nav";
+import { useI18n } from "@/lib/i18n-context";
+import { adminRoot, navSections, type NavIconSource, type NavItem } from "@/lib/nav";
 import { useShell } from "./shell-context";
 
 function isActive(pathname: string, href: string) {
-  return href === "/" ? pathname === "/" : pathname.startsWith(href);
+  if (href === adminRoot) return pathname === adminRoot;
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 function NavIcon({ icon }: { icon: NavIconSource }) {
@@ -38,6 +40,7 @@ function NavIcon({ icon }: { icon: NavIconSource }) {
 
 function NavRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
   const pathname = usePathname();
+  const { t } = useI18n();
   const active = isActive(pathname, item.href);
   const [open, setOpen] = useState(active);
 
@@ -54,12 +57,12 @@ function NavRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
           onClick={() => setOpen((v) => !v)}
           className={rowClasses}
           aria-expanded={open}
-          title={collapsed ? item.label : undefined}
+          title={collapsed ? t(item.label) : undefined}
         >
           <NavIcon icon={item.icon} />
           {!collapsed && (
             <>
-              <span className="truncate">{item.label}</span>
+              <span className="truncate">{t(item.label)}</span>
               <ChevronRight
                 className={cn("ml-auto size-4 shrink-0 transition-transform", open && "rotate-90")}
                 strokeWidth={1.75}
@@ -81,7 +84,7 @@ function NavRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
                       : "text-ink-500 hover:text-ink-900",
                   )}
                 >
-                  {child.label}
+                  {t(child.label)}
                 </Link>
               </li>
             ))}
@@ -93,9 +96,9 @@ function NavRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
 
   return (
     <li>
-      <Link href={item.href} className={rowClasses} title={collapsed ? item.label : undefined}>
+      <Link href={item.href} className={rowClasses} title={collapsed ? t(item.label) : undefined}>
         <NavIcon icon={item.icon} />
-        {!collapsed && <span className="truncate">{item.label}</span>}
+        {!collapsed && <span className="truncate">{t(item.label)}</span>}
       </Link>
     </li>
   );
@@ -103,6 +106,7 @@ function NavRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
 
 export function Sidebar() {
   const { collapsed, toggleCollapsed, mobileOpen, setMobileOpen } = useShell();
+  const { t } = useI18n();
 
   const railed = collapsed && !mobileOpen;
 
@@ -140,8 +144,8 @@ export function Sidebar() {
 
         <div className="flex h-16 items-center gap-2 px-4">
           {!railed && (
-            <Link href="/" className="flex min-w-0 items-center">
-              <Image src="/Logo.svg" alt="BestCar" width={115} height={36} priority />
+            <Link href={adminRoot} className="flex min-w-0 items-center">
+              <Image src="/sidebar-icons/Logo.png" alt="BestCar" width={115} height={36} priority />
             </Link>
           )}
 
@@ -169,7 +173,7 @@ export function Sidebar() {
                     railed && "px-0 text-center",
                   )}
                 >
-                  {railed ? "•" : section.title}
+                  {railed ? "•" : t(section.title)}
                 </p>
               )}
               <ul className="space-y-1">

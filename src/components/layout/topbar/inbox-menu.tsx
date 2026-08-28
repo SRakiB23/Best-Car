@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 
 import { Popover, PopoverHeader } from "@/components/ui/popover";
 import { cn } from "@/lib/cn";
+import { useI18n } from "@/lib/i18n-context";
 
 export type InboxEntry = {
   id: string;
@@ -30,6 +31,7 @@ export function InboxMenu({
   triggerClassName,
   emptyText,
 }: InboxMenuProps) {
+  const { t } = useI18n();
   const [items, setItems] = useState(entries);
   const unread = items.filter((item) => item.unread).length;
 
@@ -60,7 +62,7 @@ export function InboxMenu({
                   onClick={() => setItems(items.map((item) => ({ ...item, unread: false })))}
                   className="text-xs font-medium text-brand-500 transition hover:text-brand-600"
                 >
-                  Mark all read
+                  {t("Mark all read")}
                 </button>
               ) : (
                 <span className="text-xs text-ink-400">All read</span>

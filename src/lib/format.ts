@@ -1,4 +1,13 @@
-export const formatAmount = (value: number) => `$${value.toFixed(2)}`;
+import type { CurrencyCode } from "./types";
 
-export const formatCountPlus = (value: number) =>
-  `${value.toLocaleString("en-US")}+`;
+const symbols: Record<CurrencyCode, string> = {
+  USD: "$",
+  EUR: "€",
+  GBP: "£",
+  BDT: "৳",
+};
+
+export const formatAmount = (value: number, currency: CurrencyCode = "USD") =>
+  `${symbols[currency]}${value.toFixed(2)}`;
+
+export const formatCountPlus = (value: number) => `${value.toLocaleString("en-US")}+`;

@@ -119,7 +119,7 @@ export function Carousel({
 
       <div
         className={cn(
-          "mt-8 flex items-center gap-6",
+          "mt-6 flex items-center gap-6 sm:mt-8",
           controls === "labels" ? "justify-between" : "justify-center",
         )}
       >

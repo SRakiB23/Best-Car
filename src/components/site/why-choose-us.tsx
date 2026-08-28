@@ -3,36 +3,37 @@ import { IconHeadphones, IconMapPin, IconTag } from "@tabler/icons-react";
 
 import { IconTile } from "@/components/site/icon-tile";
 import { Reveal } from "@/components/site/reveal";
-import { Container, SectionHeading } from "@/components/site/section";
+import { Container, SectionHeading, sectionGap, sectionPadding } from "@/components/site/section";
+import { cn } from "@/lib/cn";
 
 const reasons = [
   {
     icon: IconHeadphones,
     title: "Customer Support",
-    body: "Extremely responsive customer support provided by the team at best car rental UK.",
+    body: "Extremely responsive customer support provided by the team at best car rental Bangladesh.",
   },
   {
     icon: IconTag,
     title: "Best Price Guarantted",
-    body: "Extremely best prices for all category people offered at the best car rental UK.",
+    body: "Extremely best prices for all category people offered at the best car rental Bangladesh.",
   },
   {
     icon: IconMapPin,
     title: "Many Location",
-    body: "Extremely the best location and available near the big cities. Just visit best car rental UK.",
+    body: "Extremely the best location and available near the big cities. Just visit best car rental Bangladesh.",
   },
 ];
 
 export function WhyChooseUs() {
   return (
-    <section id="why-choose-us" className="bg-white py-16 lg:py-24">
+    <section id="why-choose-us" className={cn("bg-white", sectionPadding)}>
       <Container>
         <SectionHeading
           title="Why choose us"
           subtitle="A high-performing web-based car rental system for any rent-a-car company and website"
         />
 
-        <div className="mt-12 grid items-center gap-10 lg:mt-16 lg:grid-cols-2 lg:gap-16">
+        <div className={cn(sectionGap, "grid items-center gap-8 sm:gap-10 lg:grid-cols-2 lg:gap-16")}>
           <div className="relative aspect-4/3 w-full overflow-hidden rounded-3xl bg-mist lg:aspect-square">
             <Image
               src="/client-side/cars/aston-martin.webp"
@@ -43,9 +44,9 @@ export function WhyChooseUs() {
             />
           </div>
 
-          <ul className="flex flex-col gap-8">
+          <ul className="flex flex-col gap-7 sm:gap-8">
             {reasons.map((reason, index) => (
-              <Reveal as="li" key={reason.title} delay={index * 120} className="flex gap-5">
+              <Reveal as="li" key={reason.title} delay={index * 120} className="flex gap-4 sm:gap-5">
                 <IconTile
                   icon={reason.icon}
                   className="size-12 rounded-2xl"

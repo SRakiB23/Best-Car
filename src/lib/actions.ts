@@ -133,6 +133,23 @@ export async function setLocale(locale: Locale) {
   refresh();
 }
 
+type Inbox = "notifications" | "messages";
+
+/** Read state lives in the database so the unread badge survives a refresh. */
+export async function markInboxRead(inbox: Inbox, id?: string) {
+  await requireUser();
+  const supabase = await createClient();
+
+  let query = supabase.from(inbox).update({ read_at: new Date().toISOString() }).is("read_at", null);
+  if (id) query = query.eq("id", id);
+
+  const { error } = await query;
+  if (error) return { status: "error" as const, message: error.message };
+
+  refresh();
+  return { status: "success" as const };
+}
+
 export async function changePassword(_previous: FormState, form: FormData): Promise<FormState> {
   const current = text(form, "currentPassword");
   const next = text(form, "newPassword");

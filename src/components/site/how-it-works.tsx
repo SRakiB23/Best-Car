@@ -1,23 +1,23 @@
 import { IconTile } from "@/components/site/icon-tile";
 import { Reveal } from "@/components/site/reveal";
-import { Container, SectionHeading } from "@/components/site/section";
+import { Container, SectionHeading, sectionGap, sectionPadding } from "@/components/site/section";
 import { cn } from "@/lib/cn";
 
 const steps = [
   {
     icon: "/client-side/how-it-works/location.svg",
     title: "Choose Location",
-    body: "Aliquam erat volutpat. Integer malesuada turpis id fringilla suscipit. Maecenas ultrices, orci vitae convallis mattis.",
+    body: "Tell us where you want to collect the car. We have pick-up points in Dhaka, Chattogram, Sylhet and Khulna.",
   },
   {
     icon: "/client-side/how-it-works/calendar.svg",
     title: "Pick-up Date",
-    body: "Aliquam erat volutpat. Integer malesuada turpis id fringilla suscipit. Maecenas ultrices, orci vitae convallis mattis.",
+    body: "Set your pick-up and drop-off dates and times. We only show cars that are free for your whole trip.",
   },
   {
     icon: "/client-side/how-it-works/book.svg",
     title: "Book your car",
-    body: "Aliquam erat volutpat. Integer malesuada turpis id fringilla suscipit. Maecenas ultrices, orci vitae convallis mattis.",
+    body: "Confirm in a few clicks and get your booking reference by email. Insurance and servicing are included.",
   },
 ];
 
@@ -59,7 +59,7 @@ export function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="bg-white py-16 lg:flex lg:min-h-115.5 lg:items-center lg:py-0"
+      className={cn("bg-white lg:flex lg:min-h-115.5 lg:items-center", sectionPadding)}
     >
       <Container>
         <SectionHeading
@@ -68,7 +68,12 @@ export function HowItWorks() {
         />
 
         {/* Steps sit on an even 3-up grid; the curves float over the gaps so they never affect spacing. */}
-        <div className="relative mt-12 grid justify-items-center gap-10 lg:mt-16 lg:grid-cols-3 lg:gap-0">
+        <div
+          className={cn(
+            sectionGap,
+            "relative grid justify-items-center gap-10 sm:gap-12 lg:grid-cols-3 lg:gap-0",
+          )}
+        >
           <StepConnector className="left-1/3" />
           <StepConnector className="left-2/3" />
 

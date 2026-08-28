@@ -5,14 +5,22 @@ import { listKeys } from "@/lib/list-params";
 import { useI18n } from "@/lib/i18n-context";
 import { useSetParams } from "@/lib/use-set-param";
 
-const options = [
+export type StatusOption = { value: string; label: string };
+
+const paymentOptions: StatusOption[] = [
   { value: "", label: "All" },
   { value: "success", label: "Success" },
   { value: "pending", label: "Pending" },
   { value: "cancelled", label: "Cancelled" },
 ];
 
-export function StatusFilter({ value }: { value: string }) {
+export function StatusFilter({
+  value,
+  options = paymentOptions,
+}: {
+  value: string;
+  options?: StatusOption[];
+}) {
   const { t } = useI18n();
   const setParams = useSetParams();
 

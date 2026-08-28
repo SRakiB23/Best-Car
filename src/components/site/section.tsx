@@ -2,10 +2,16 @@ import type { ComponentProps } from "react";
 
 import { cn } from "@/lib/cn";
 
+/** Shared vertical rhythm so every storefront band steps the same way across breakpoints. */
+export const sectionPadding = "py-16 sm:py-20 lg:py-24";
+
+/** Distance from a section heading to the block of content underneath it. */
+export const sectionGap = "mt-10 sm:mt-12 lg:mt-16";
+
 export function Container({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
-      className={cn("mx-auto w-full max-w-360 px-4 sm:px-6 lg:px-10 xl:px-20 pb-10 lg:pb-24", className)}
+      className={cn("mx-auto w-full max-w-360 px-4 sm:px-6 lg:px-10 xl:px-20", className)}
       {...props}
     />
   );

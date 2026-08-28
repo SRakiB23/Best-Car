@@ -10,10 +10,82 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.17"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          created_at: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          days: number | null
+          end_date: string
+          id: string
+          idempotency_key: string | null
+          pickup_location: string
+          price_per_day: number
+          reference: string
+          start_date: string
+          status: Database["public"]["Enums"]["booking_status"]
+          total_amount: number
+          user_id: string | null
+          vehicle_id: string
+        }
+        Insert: {
+          created_at?: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          days?: number | null
+          end_date: string
+          id?: string
+          idempotency_key?: string | null
+          pickup_location?: string
+          price_per_day: number
+          reference: string
+          start_date: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          total_amount: number
+          user_id?: string | null
+          vehicle_id: string
+        }
+        Update: {
+          created_at?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string
+          days?: number | null
+          end_date?: string
+          id?: string
+          idempotency_key?: string | null
+          pickup_location?: string
+          price_per_day?: number
+          reference?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          total_amount?: number
+          user_id?: string | null
+          vehicle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "product_list"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       countries: {
         Row: {
           code: string
@@ -58,6 +130,7 @@ export type Database = {
           created_at: string
           detail: string
           id: string
+          link: string
           read_at: string | null
           title: string
         }
@@ -65,6 +138,7 @@ export type Database = {
           created_at?: string
           detail: string
           id?: string
+          link?: string
           read_at?: string | null
           title: string
         }
@@ -72,6 +146,7 @@ export type Database = {
           created_at?: string
           detail?: string
           id?: string
+          link?: string
           read_at?: string | null
           title?: string
         }
@@ -147,7 +222,6 @@ export type Database = {
       }
       products: {
         Row: {
-          archived_at: string | null
           category: string
           created_at: string
           id: string
@@ -157,7 +231,6 @@ export type Database = {
           stock: number
         }
         Insert: {
-          archived_at?: string | null
           category?: string
           created_at?: string
           id?: string
@@ -167,7 +240,6 @@ export type Database = {
           stock?: number
         }
         Update: {
-          archived_at?: string | null
           category?: string
           created_at?: string
           id?: string
@@ -184,6 +256,7 @@ export type Database = {
           email: string
           full_name: string
           id: string
+          is_staff: boolean
           phone: string
           role: string
           updated_at: string
@@ -193,6 +266,7 @@ export type Database = {
           email?: string
           full_name?: string
           id: string
+          is_staff?: boolean
           phone?: string
           role?: string
           updated_at?: string
@@ -202,6 +276,7 @@ export type Database = {
           email?: string
           full_name?: string
           id?: string
+          is_staff?: boolean
           phone?: string
           role?: string
           updated_at?: string
@@ -264,6 +339,28 @@ export type Database = {
       }
     }
     Views: {
+      booking_list: {
+        Row: {
+          created_at: string | null
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          days: number | null
+          end_date: string | null
+          id: string | null
+          pickup_location: string | null
+          price_per_day: number | null
+          reference: string | null
+          start_date: string | null
+          status: Database["public"]["Enums"]["booking_status"] | null
+          total_amount: number | null
+          user_id: string | null
+          vehicle_category: string | null
+          vehicle_image: string | null
+          vehicle_name: string | null
+        }
+        Relationships: []
+      }
       order_list: {
         Row: {
           amount: number | null
@@ -315,6 +412,9 @@ export type Database = {
           sales: number
         }[]
       }
+      booking_payload: { Args: { p_reference: string }; Returns: Json }
+      booking_reference: { Args: never; Returns: string }
+      cancel_booking: { Args: { p_reference: string }; Returns: Json }
       country_sales: {
         Args: { window_days: number }
         Returns: {
@@ -322,6 +422,19 @@ export type Database = {
           name: string
           sales: number
         }[]
+      }
+      create_booking: {
+        Args: {
+          p_email: string
+          p_end: string
+          p_idempotency_key?: string
+          p_location?: string
+          p_name: string
+          p_phone: string
+          p_start: string
+          p_vehicle_id: string
+        }
+        Returns: Json
       }
       earning_summary: {
         Args: { window_days: number }
@@ -333,6 +446,7 @@ export type Database = {
           total_sales: number
         }[]
       }
+      is_staff: { Args: never; Returns: boolean }
       sales_analytics: {
         Args: { target_year: number }
         Returns: {
@@ -347,8 +461,20 @@ export type Database = {
           percent: number
         }[]
       }
+      vehicle_booked_ranges: {
+        Args: { p_vehicle_id: string }
+        Returns: {
+          end_date: string
+          start_date: string
+        }[]
+      }
+      vehicle_is_available: {
+        Args: { p_end: string; p_start: string; p_vehicle_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
+      booking_status: "confirmed" | "cancelled"
       order_status: "success" | "pending" | "cancelled"
     }
     CompositeTypes: {
@@ -477,6 +603,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      booking_status: ["confirmed", "cancelled"],
       order_status: ["success", "pending", "cancelled"],
     },
   },

@@ -1,14 +1,18 @@
 import Image from "next/image";
 
 import { Carousel } from "@/components/site/carousel";
-import { Container } from "@/components/site/section";
+import { Container, sectionPadding } from "@/components/site/section";
+import { cn } from "@/lib/cn";
 import { fleet } from "@/lib/fleet";
 
 export function FleetShowcase() {
   return (
     <section
       id="fleet"
-      className="relative overflow-hidden bg-night-900 bg-linear-to-b from-night-900 via-night-800 to-night-900 py-14 lg:py-20"
+      className={cn(
+        "relative overflow-hidden bg-night-900 bg-linear-to-b from-night-900 via-night-800 to-night-900",
+        sectionPadding,
+      )}
     >
       <span
         aria-hidden

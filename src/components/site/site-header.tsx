@@ -2,24 +2,31 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { IconMenu2, IconX } from "@tabler/icons-react";
 
 import { Container } from "@/components/site/section";
+import { SignOutButton } from "@/components/site/sign-out-button";
 import { buttonClass } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
 
 const links = [
-  { label: "Home", href: "#home" },
-  { label: "How it Work", href: "#how-it-works" },
-  { label: "Rental Details", href: "#rental-details" },
-  { label: "Why Choose Us", href: "#why-choose-us" },
-  { label: "Testimonial", href: "#testimonial" },
+  { label: "Home", href: "/#home" },
+  { label: "How it Work", href: "/#how-it-works" },
+  { label: "Our Cars", href: "/cars" },
+  { label: "Why Choose Us", href: "/#why-choose-us" },
+  { label: "Testimonial", href: "/#testimonial" },
 ];
 
-export function SiteHeader() {
+export type HeaderViewer = { name: string; isStaff: boolean };
+
+export function SiteHeader({ viewer }: { viewer?: HeaderViewer | null }) {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState(links[0].href);
+  const [active, setActive] = useState(() =>
+    pathname.startsWith("/cars") ? "/cars" : links[0].href,
+  );
 
   return (
     <header className="relative z-30 bg-night-900">
@@ -37,7 +44,7 @@ export function SiteHeader() {
 
         <nav className="hidden items-center gap-7 lg:flex">
           {links.map((link) => (
-            <a
+            <Link
               key={link.href}
               href={link.href}
               onClick={() => setActive(link.href)}
@@ -49,18 +56,38 @@ export function SiteHeader() {
               )}
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
         <div className="hidden items-center gap-5 lg:flex">
           <span className="h-6 w-px bg-white/15" />
-          <Link href="/register" className="text-[13px] font-medium text-white/80 hover:text-white">
-            Register
-          </Link>
-          <Link href="/login" className={buttonClass("gold", "md", "px-6 font-semibold")}>
-            Log In
-          </Link>
+
+          {viewer ? (
+            <>
+              <Link
+                href={viewer.isStaff ? "/admin" : "/account/bookings"}
+                className="text-[13px] font-medium text-white/80 hover:text-white"
+              >
+                {viewer.isStaff ? "Dashboard" : "My bookings"}
+              </Link>
+              <SignOutButton className={buttonClass("gold", "md", "px-6 font-semibold")}>
+                Sign out
+              </SignOutButton>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/register"
+                className="text-[13px] font-medium text-white/80 hover:text-white"
+              >
+                Register
+              </Link>
+              <Link href="/login" className={buttonClass("gold", "md", "px-6 font-semibold")}>
+                Log In
+              </Link>
+            </>
+          )}
         </div>
 
         <button
@@ -78,7 +105,7 @@ export function SiteHeader() {
         <div className="mb-4 rounded-2xl border border-white/10 bg-night-800 p-4">
           <nav className="flex flex-col">
             {links.map((link) => (
-              <a
+              <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => {
@@ -91,20 +118,37 @@ export function SiteHeader() {
                 )}
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
           </nav>
 
           <div className="mt-3 flex items-center gap-3 border-t border-white/10 pt-3">
-            <Link
-              href="/register"
-              className="flex-1 rounded-lg border border-white/15 py-2 text-center text-[13px] font-medium text-white"
-            >
-              Register
-            </Link>
-            <Link href="/login" className={buttonClass("gold", "md", "flex-1 font-semibold")}>
-              Log In
-            </Link>
+            {viewer ? (
+              <>
+                <Link
+                  href={viewer.isStaff ? "/admin" : "/account/bookings"}
+                  onClick={() => setOpen(false)}
+                  className="flex-1 rounded-lg border border-white/15 py-2 text-center text-[13px] font-medium text-white"
+                >
+                  {viewer.isStaff ? "Dashboard" : "My bookings"}
+                </Link>
+                <SignOutButton className={buttonClass("gold", "md", "flex-1 font-semibold")}>
+                  Sign out
+                </SignOutButton>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/register"
+                  className="flex-1 rounded-lg border border-white/15 py-2 text-center text-[13px] font-medium text-white"
+                >
+                  Register
+                </Link>
+                <Link href="/login" className={buttonClass("gold", "md", "flex-1 font-semibold")}>
+                  Log In
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </Container>

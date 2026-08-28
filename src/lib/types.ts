@@ -1,8 +1,10 @@
 export type Money = number;
 
+export type TrendDirection = "up" | "down";
+
 export type Trend = {
   percent: number;
-  direction: "up" | "down";
+  direction: TrendDirection;
   comparedTo: string;
 };
 
@@ -87,4 +89,24 @@ export type Preferences = {
   currency: CurrencyCode;
   timezone: string;
   lowStockThreshold: number;
+};
+
+export type ProductRow = {
+  id: string;
+  name: string;
+  category: string;
+  price: Money;
+  stock: number;
+  sales: number;
+  revenue: Money;
+  image?: string;
+};
+
+export type OrderRow = Transaction & {
+  placedAt: string;
+};
+
+export type ListResult<T> = {
+  rows: T[];
+  total: number;
 };

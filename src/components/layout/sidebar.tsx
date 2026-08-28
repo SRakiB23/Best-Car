@@ -17,16 +17,16 @@ function isActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function NavIcon({ icon }: { icon: NavIconSource }) {
+function NavIcon({ icon, className }: { icon: NavIconSource; className?: string }) {
   if (typeof icon !== "string") {
     const Glyph = icon;
-    return <Glyph size={16} stroke={1.6} className="shrink-0" />;
+    return <Glyph size={16} stroke={1.6} className={cn("shrink-0", className)} />;
   }
 
   return (
     <span
       aria-hidden
-      className="size-4 shrink-0 bg-current"
+      className={cn("size-4 shrink-0 bg-current", className)}
       style={{
         maskImage: `url(${icon})`,
         WebkitMaskImage: `url(${icon})`,
@@ -46,8 +46,12 @@ function NavRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
 
   const rowClasses = cn(
     "group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors",
-    active ? "bg-brand-50 text-brand-500" : "text-ink-500 hover:bg-canvas hover:text-ink-900",
+    active ? "bg-brand-50 text-brand-500" : "text-ink-800 hover:bg-canvas",
   );
+
+  // The icon sits a shade lighter than the label, so it cannot ride on the
+  // row's currentColor.
+  const iconClasses = active ? undefined : "text-ink-500";
 
   if (item.children) {
     return (
@@ -59,7 +63,7 @@ function NavRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
           aria-expanded={open}
           title={collapsed ? t(item.label) : undefined}
         >
-          <NavIcon icon={item.icon} />
+          <NavIcon icon={item.icon} className={iconClasses} />
           {!collapsed && (
             <>
               <span className="truncate">{t(item.label)}</span>
@@ -81,7 +85,7 @@ function NavRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
                     "block rounded-md px-3 py-1.5 text-[13px] transition-colors",
                     pathname === child.href
                       ? "font-medium text-brand-500"
-                      : "text-ink-500 hover:text-ink-900",
+                      : "text-ink-800 hover:text-brand-500",
                   )}
                 >
                   {t(child.label)}
@@ -97,7 +101,7 @@ function NavRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
   return (
     <li>
       <Link href={item.href} className={rowClasses} title={collapsed ? t(item.label) : undefined}>
-        <NavIcon icon={item.icon} />
+        <NavIcon icon={item.icon} className={iconClasses} />
         {!collapsed && <span className="truncate">{t(item.label)}</span>}
       </Link>
     </li>

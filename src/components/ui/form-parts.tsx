@@ -7,13 +7,21 @@ import { useI18n } from "@/lib/i18n-context";
 import { Button } from "./button";
 import type { FormState } from "@/lib/form-state";
 
-export function SubmitButton({ children }: { children: string }) {
+export function SubmitButton({
+  children,
+  pendingLabel = "Saving…",
+  className,
+}: {
+  children: string;
+  pendingLabel?: string;
+  className?: string;
+}) {
   const { pending } = useFormStatus();
   const { t } = useI18n();
 
   return (
-    <Button type="submit" variant="brand" disabled={pending}>
-      {pending ? t("Saving…") : children}
+    <Button type="submit" variant="brand" disabled={pending} className={className}>
+      {pending ? t(pendingLabel) : t(children)}
     </Button>
   );
 }

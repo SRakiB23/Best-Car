@@ -1,8 +1,5 @@
 import type { Account, CurrencyCode, Preferences } from "./types";
 
-export const accountCookie = "bestcar.account";
-export const preferencesCookie = "bestcar.preferences";
-
 export const defaultAccount: Account = {
   name: "Mike Witzel",
   role: "Store Administrator",

@@ -2,36 +2,71 @@ import "server-only";
 
 import { cookies } from "next/headers";
 
-import {
-  accountCookie,
-  defaultAccount,
-  defaultPreferences,
-  preferencesCookie,
-} from "./account";
+import { defaultAccount, defaultPreferences } from "./account";
+import { currentUser } from "./auth";
 import { defaultLocale, isLocale, localeCookie, translator } from "./i18n";
+import { createClient } from "./supabase/server";
+import type { Account, CurrencyCode, Preferences } from "./types";
 
-async function read<T extends object>(name: string, fallback: T): Promise<T> {
-  const raw = (await cookies()).get(name)?.value;
-  if (!raw) return fallback;
+async function profileRow() {
+  const user = await currentUser();
+  if (!user) return null;
 
-  try {
-    return { ...fallback, ...(JSON.parse(raw) as Partial<T>) };
-  } catch {
-    return fallback;
-  }
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select("full_name, email, phone, avatar_url, role")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  return data ? { ...data, email: data.email || (user.email ?? "") } : null;
 }
 
-export function getAccount() {
-  return read(accountCookie, defaultAccount);
+async function settingsRow() {
+  const user = await currentUser();
+  if (!user) return null;
+
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("user_settings")
+    .select("store_name, currency, timezone, low_stock_threshold, locale")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  return data;
 }
 
-export function getPreferences() {
-  return read(preferencesCookie, defaultPreferences);
+export async function getAccount(): Promise<Account> {
+  const row = await profileRow();
+  if (!row) return defaultAccount;
+
+  return {
+    name: row.full_name || defaultAccount.name,
+    role: row.role,
+    email: row.email,
+    phone: row.phone,
+    avatarUrl: row.avatar_url,
+  };
+}
+
+export async function getPreferences(): Promise<Preferences> {
+  const row = await settingsRow();
+  if (!row) return defaultPreferences;
+
+  return {
+    storeName: row.store_name,
+    currency: row.currency as CurrencyCode,
+    timezone: row.timezone,
+    lowStockThreshold: row.low_stock_threshold,
+  };
 }
 
 export async function getLocale() {
-  const value = (await cookies()).get(localeCookie)?.value ?? "";
-  return isLocale(value) ? value : defaultLocale;
+  const chosen = (await cookies()).get(localeCookie)?.value ?? "";
+  if (isLocale(chosen)) return chosen;
+
+  const saved = (await settingsRow())?.locale ?? "";
+  return isLocale(saved) ? saved : defaultLocale;
 }
 
 export async function getTranslator() {

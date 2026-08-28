@@ -5,6 +5,7 @@ import { useActionState } from "react";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 import { Field, controlClass } from "@/components/ui/field";
 import { FormMessage, SubmitButton } from "@/components/ui/form-parts";
+import { ImagePicker } from "@/components/ui/image-picker";
 import { saveProfile } from "@/lib/actions";
 import { idleForm } from "@/lib/form-state";
 import { useI18n } from "@/lib/i18n-context";
@@ -37,18 +38,18 @@ export function ProfileForm({ account }: { account: Account }) {
             <input name="phone" defaultValue={account.phone} className={controlClass} />
           </Field>
 
-          <Field
-            label={t("Profile image URL")}
-            error={state.errors?.avatarUrl}
-            hint={t("Leave empty to show your initials.")}
-          >
-            <input
-              name="avatarUrl"
-              defaultValue={account.avatarUrl}
-              placeholder="https://example.com/photo.jpg"
-              className={controlClass}
+          <div className="sm:col-span-2">
+            <ImagePicker
+              name="avatar"
+              label="Profile photo"
+              error={state.errors?.avatar}
+              currentImage={account.avatarUrl || undefined}
+              round
             />
-          </Field>
+            <p className="mt-1.5 text-xs text-ink-400">
+              {t("Remove your photo to show your initials instead.")}
+            </p>
+          </div>
         </CardBody>
 
         <div className="flex items-center justify-between gap-3 border-t border-line px-5 py-4">

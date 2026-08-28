@@ -1,12 +1,14 @@
-import {
-  comparisonLabel,
-  periodComparison,
-  type ChartYear,
-  type DateRange,
-  type Period,
-} from "./filters";
+import { rangeDays, periodDays, comparisonLabel, periodComparison } from "./filters";
+import type { ChartYear, DateRange, Period } from "./filters";
+import { pageRange, type ListParams, type SortDirection } from "./list-params";
+import { relativeTime } from "./relative-time";
+import { createClient } from "./supabase/server";
 import type {
   BestSeller,
+  ListResult,
+  OrderRow,
+  PaymentStatus,
+  ProductRow,
   CountrySalesSummary,
   EarningSummary,
   Message,
@@ -14,184 +16,252 @@ import type {
   SalesPoint,
   Store,
   Transaction,
+  TrendDirection,
 } from "./types";
 
-const rangeScale: Record<DateRange, number> = {
-  "7d": 1,
-  "30d": 4.3,
-  "90d": 12.8,
-  "365d": 51,
-};
-
-const rangeTrend: Record<DateRange, number> = { "7d": 48, "30d": 32, "90d": 17, "365d": 61 };
+function unwrap<T>(result: { data: T | null; error: { message: string } | null }, context: string) {
+  if (result.error) throw new Error(`${context}: ${result.error.message}`);
+  return result.data;
+}
 
 export async function getEarningSummary(range: DateRange): Promise<EarningSummary> {
-  const scale = rangeScale[range];
+  const supabase = await createClient();
+  const rows = unwrap(
+    await supabase.rpc("earning_summary", { window_days: rangeDays[range] }),
+    "earning_summary",
+  );
+
+  const summary = rows?.[0];
 
   return {
-    weeklyEarning: Number((95000.45 * scale).toFixed(2)),
+    weeklyEarning: Number(summary?.revenue ?? 0),
     trend: {
-      percent: rangeTrend[range],
-      direction: "up",
+      percent: Number(summary?.percent ?? 0),
+      direction: (summary?.direction ?? "up") as TrendDirection,
       comparedTo: comparisonLabel[range],
     },
-    totalSales: Math.round(10000 * scale),
-    purchasedGoods: Math.round(800 * scale),
+    totalSales: Number(summary?.total_sales ?? 0),
+    purchasedGoods: Number(summary?.purchased_goods ?? 0),
   };
 }
 
 export async function getBestSellers(range: DateRange): Promise<BestSeller[]> {
-  const scale = rangeScale[range];
+  const supabase = await createClient();
+  const rows = unwrap(
+    await supabase.rpc("best_sellers", { window_days: rangeDays[range], max_rows: 5 }),
+    "best_sellers",
+  );
 
-  const items: BestSeller[] = [
-    { id: "bs-1", name: "Range Rover", price: 260, sales: 6547 },
-    { id: "bs-2", name: "Audi S3", price: 1474, sales: 3474 },
-    { id: "bs-3", name: "Blue Nissan", price: 8784, sales: 1478 },
-    { id: "bs-4", name: "Toyota Corolla", price: 3240, sales: 987 },
-    { id: "bs-5", name: "Compact car", price: 597, sales: 784 },
-  ];
-
-  return items.map((item) => ({ ...item, sales: Math.round(item.sales * scale) }));
+  return (rows ?? []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    price: Number(row.price),
+    sales: Number(row.sales),
+    image: row.image_url || undefined,
+  }));
 }
 
-export async function getRecentTransactions(): Promise<Transaction[]> {
-  return [
-    {
-      id: "tx-1",
-      product: "Range Rover",
-      placedAgo: "15 Mins",
-      paymentMethod: "Paypal",
-      reference: "#416645453773",
-      status: "success",
-      amount: 1099,
-    },
-    {
-      id: "tx-2",
-      product: "Red Toyota",
-      placedAgo: "15 Mins",
-      paymentMethod: "Apple Pay",
-      reference: "#147784454554",
-      status: "cancelled",
-      amount: 600.55,
-    },
-    {
-      id: "tx-3",
-      product: "Blue Nissan",
-      placedAgo: "15 Mins",
-      paymentMethod: "Stripe",
-      reference: "#147784454554",
-      status: "pending",
-      amount: 200.1,
-    },
-    {
-      id: "tx-4",
-      product: "Toyota Corolla",
-      placedAgo: "15 Mins",
-      paymentMethod: "PayU",
-      reference: "#147784454554",
-      status: "success",
-      amount: 1569,
-    },
-    {
-      id: "tx-5",
-      product: "Range Rover",
-      placedAgo: "15 Mins",
-      paymentMethod: "Paytm",
-      reference: "#147784454554",
-      status: "success",
-      amount: 1478,
-    },
-  ];
+export async function getRecentTransactions(
+  sort: OrderSortKey = "date",
+  dir: SortDirection = "desc",
+): Promise<Transaction[]> {
+  const supabase = await createClient();
+  const rows = unwrap(
+    await supabase
+      .from("order_list")
+      .select("id, reference, payment_method, status, amount, placed_at, product_name, product_image")
+      .order(orderColumns[sort], { ascending: dir === "asc" })
+      .limit(5),
+    "recent transactions",
+  );
+
+  return (rows ?? []).map((row) => ({
+    id: row.id!,
+    product: row.product_name!,
+    image: row.product_image || undefined,
+    placedAgo: relativeTime(row.placed_at!),
+    paymentMethod: row.payment_method!,
+    reference: row.reference!,
+    status: row.status!,
+    amount: Number(row.amount),
+  }));
 }
-
-const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "July", "Aug", "Sep"];
-
-const yearlySales: Record<ChartYear, number[]> = {
-  "2021": [14000, 18500, 15000, 22000, 26000, 21000, 24500, 28000, 31000],
-  "2022": [19000, 22000, 26500, 20000, 24000, 33000, 27500, 23000, 25000],
-  "2023": [24000, 30000, 17500, 21000, 20500, 30000, 20000, 19000, 17000],
-};
 
 export async function getSalesAnalytics(year: ChartYear): Promise<SalesPoint[]> {
-  return months.map((month, index) => ({ month, value: yearlySales[year][index] }));
+  const supabase = await createClient();
+  const rows = unwrap(
+    await supabase.rpc("sales_analytics", { target_year: Number(year) }),
+    "sales_analytics",
+  );
+
+  return (rows ?? []).map((row) => ({ month: row.month_label, value: Number(row.total) }));
 }
 
-const periodScale: Record<Period, number> = { week: 1, month: 4.1, year: 46 };
-const periodTrend: Record<Period, number> = { week: 48, month: 26, year: 73 };
-
 export async function getSalesByCountry(period: Period): Promise<CountrySalesSummary> {
-  const scale = periodScale[period];
+  const supabase = await createClient();
+  const days = periodDays[period];
 
-  const countries = [
-    { isoNumericCode: "840", name: "United States", sales: 5120 },
-    { isoNumericCode: "076", name: "Brazil", sales: 2870 },
-    { isoNumericCode: "710", name: "South Africa", sales: 3455 },
-    { isoNumericCode: "156", name: "China", sales: 4210 },
-    { isoNumericCode: "356", name: "India", sales: 3980 },
-    { isoNumericCode: "643", name: "Russia", sales: 1740 },
-  ];
+  const [countries, trend] = await Promise.all([
+    supabase.rpc("country_sales", { window_days: days }),
+    supabase.rpc("sales_trend", { window_days: days }),
+  ]);
+
+  const rows = unwrap(countries, "country_sales") ?? [];
+  const summary = (unwrap(trend, "sales_trend") ?? [])[0];
 
   return {
-    countries: countries.map((item) => ({ ...item, sales: Math.round(item.sales * scale) })),
+    countries: rows.map((row) => ({
+      isoNumericCode: row.code,
+      name: row.name,
+      sales: Number(row.sales),
+    })),
     trend: {
-      percent: periodTrend[period],
-      direction: "up",
+      percent: Number(summary?.percent ?? 0),
+      direction: (summary?.direction ?? "up") as TrendDirection,
       comparedTo: periodComparison[period],
     },
   };
 }
 
 export async function getStores(): Promise<Store[]> {
-  return [
-    { id: "coming-soon", name: "Coming Soon", location: "Default outlet" },
-    { id: "grand-motors", name: "Grand Motors", location: "Dhaka, Banani" },
-    { id: "city-autos", name: "City Autos", location: "Chattogram, GEC" },
-    { id: "prime-wheels", name: "Prime Wheels", location: "Sylhet, Zindabazar" },
-  ];
+  const supabase = await createClient();
+  const rows = unwrap(
+    await supabase.from("stores").select("id, name, location").order("sort_order"),
+    "stores",
+  );
+
+  return rows ?? [];
 }
 
 export async function getNotifications(): Promise<Notification[]> {
-  return [
-    {
-      id: "nt-1",
-      title: "Low stock alert",
-      detail: "Blue Nissan dropped below 5 units.",
-      receivedAgo: "8 Mins",
-      unread: true,
-    },
-    {
-      id: "nt-2",
-      title: "Payment received",
-      detail: "$1,478.00 settled via Paytm.",
-      receivedAgo: "42 Mins",
-      unread: false,
-    },
-    {
-      id: "nt-3",
-      title: "Warranty expiring",
-      detail: "3 warranties expire within 7 days.",
-      receivedAgo: "2 Hours",
-      unread: false,
-    },
-  ];
+  const supabase = await createClient();
+  const rows = unwrap(
+    await supabase
+      .from("notifications")
+      .select("id, title, detail, created_at, read_at")
+      .order("created_at", { ascending: false }),
+    "notifications",
+  );
+
+  return (rows ?? []).map((row) => ({
+    id: row.id,
+    title: row.title,
+    detail: row.detail,
+    receivedAgo: relativeTime(row.created_at),
+    unread: row.read_at === null,
+  }));
 }
 
 export async function getMessages(): Promise<Message[]> {
-  return [
-    {
-      id: "ms-1",
-      sender: "Rakib Hasan",
-      preview: "Can you confirm the Range Rover delivery date?",
-      receivedAgo: "5 Mins",
-      unread: true,
-    },
-    {
-      id: "ms-2",
-      sender: "Tanvir Ahmed",
-      preview: "Invoice #147784454554 needs a reprint.",
-      receivedAgo: "1 Hour",
-      unread: false,
-    },
-  ];
+  const supabase = await createClient();
+  const rows = unwrap(
+    await supabase
+      .from("messages")
+      .select("id, sender, preview, created_at, read_at")
+      .order("created_at", { ascending: false }),
+    "messages",
+  );
+
+  return (rows ?? []).map((row) => ({
+    id: row.id,
+    sender: row.sender,
+    preview: row.preview,
+    receivedAgo: relativeTime(row.created_at),
+    unread: row.read_at === null,
+  }));
 }
 
+export const productSortKeys = ["name", "category", "price", "stock", "sales"] as const;
+export const orderSortKeys = ["product", "payment", "status", "amount", "date"] as const;
+
+export type ProductSortKey = (typeof productSortKeys)[number];
+export type OrderSortKey = (typeof orderSortKeys)[number];
+
+const productColumns: Record<ProductSortKey, string> = {
+  name: "name",
+  category: "category",
+  price: "price",
+  stock: "stock",
+  sales: "sales",
+};
+
+const orderColumns: Record<OrderSortKey, string> = {
+  product: "product_name",
+  payment: "payment_method",
+  status: "status",
+  amount: "amount",
+  date: "placed_at",
+};
+
+export async function getProducts(
+  params: ListParams<ProductSortKey>,
+): Promise<ListResult<ProductRow>> {
+  const supabase = await createClient();
+  const { from, to } = pageRange(params.page);
+
+  let query = supabase
+    .from("product_list")
+    .select("id, name, category, price, stock, image_url, sales, revenue", { count: "exact" });
+
+  if (params.q) query = query.ilike("name", `%${params.q}%`);
+
+  const result = await query
+    .order(productColumns[params.sort], { ascending: params.dir === "asc" })
+    .range(from, to);
+
+  const rows = unwrap(result, "products") ?? [];
+
+  return {
+    rows: rows.map((row) => ({
+      id: row.id!,
+      name: row.name!,
+      category: row.category!,
+      price: Number(row.price),
+      stock: Number(row.stock),
+      sales: Number(row.sales),
+      revenue: Number(row.revenue),
+      image: row.image_url || undefined,
+    })),
+    total: result.count ?? 0,
+  };
+}
+
+export async function getOrders(
+  params: ListParams<OrderSortKey> & { status: PaymentStatus | "" },
+): Promise<ListResult<OrderRow>> {
+  const supabase = await createClient();
+  const { from, to } = pageRange(params.page);
+
+  let query = supabase
+    .from("recent_order_list")
+    .select(
+      "id, reference, payment_method, status, amount, placed_at, product_name, product_image",
+      { count: "exact" },
+    );
+
+  if (params.q) {
+    query = query.or(`reference.ilike.%${params.q}%,product_name.ilike.%${params.q}%`);
+  }
+  if (params.status) query = query.eq("status", params.status);
+
+  const result = await query
+    .order(orderColumns[params.sort], { ascending: params.dir === "asc" })
+    .range(from, to);
+
+  const rows = unwrap(result, "orders") ?? [];
+
+  return {
+    rows: rows.map((row) => ({
+      id: row.id!,
+      product: row.product_name!,
+      image: row.product_image || undefined,
+      placedAgo: relativeTime(row.placed_at!),
+      placedAt: row.placed_at!,
+      paymentMethod: row.payment_method!,
+      reference: row.reference!,
+      status: row.status!,
+      amount: Number(row.amount),
+    })),
+    total: result.count ?? 0,
+  };
+}

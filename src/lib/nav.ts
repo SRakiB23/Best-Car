@@ -24,16 +24,7 @@ export const navSections: NavSection[] = [
     title: "Main",
     items: [
       { label: "Dashboard", href: "/admin", icon: IconLayoutGrid },
-      {
-        label: "Super Admin",
-        href: "/admin/super-admin",
-        icon: IconUserEdit,
-        children: [
-          { label: "Companies", href: "/admin/super-admin/companies" },
-          { label: "Subscriptions", href: "/admin/super-admin/subscriptions" },
-          { label: "Packages", href: "/admin/super-admin/packages" },
-        ],
-      },
+      { label: "Super Admin", href: "/admin/super-admin", icon: IconUserEdit },
     ],
   },
   {

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { IconCalendar } from "@tabler/icons-react";
 
 import { BestSellerCard } from "@/components/dashboard/best-seller-card";
@@ -6,7 +7,7 @@ import { RecentTransactionsCard } from "@/components/dashboard/recent-transactio
 import { SalesAnalyticsCard } from "@/components/dashboard/sales-analytics-card";
 import { SalesByCountriesCard } from "@/components/dashboard/sales-by-countries-card";
 import { WeeklyEarningCard } from "@/components/dashboard/weekly-earning-card";
-import { Button } from "@/components/ui/button";
+import { buttonClass } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FilterSelect } from "@/components/ui/filter-select";
 import { RefreshButton } from "@/components/ui/refresh-button";
@@ -16,7 +17,9 @@ import {
   getRecentTransactions,
   getSalesAnalytics,
   getSalesByCountry,
+  orderSortKeys,
 } from "@/lib/data";
+import { readListParams } from "@/lib/list-params";
 import {
   dateRangeOptions,
   filterKeys,
@@ -32,17 +35,19 @@ export default async function DashboardPage({
 }: {
   searchParams: Promise<DashboardSearchParams>;
 }) {
-  const { range, year, period } = readFilters(await searchParams);
+  const params = await searchParams;
+  const { range, year, period } = readFilters(params);
+  const { sort, dir } = readListParams(params, orderSortKeys, "date");
   const [{ currency }, { name }, t] = await Promise.all([
     getPreferences(),
     getAccount(),
     getTranslator(),
   ]);
 
-  const viewAll = (
-    <Button variant="soft" size="sm">
+  const viewAll = (href: string) => (
+    <Link href={href} className={buttonClass("soft", "sm")}>
       {t("View All")}
-    </Button>
+    </Link>
   );
 
   const [
@@ -54,7 +59,7 @@ export default async function DashboardPage({
   ] = await Promise.all([
     getEarningSummary(range),
     getBestSellers(range),
-    getRecentTransactions(),
+    getRecentTransactions(sort, dir),
     getSalesAnalytics(year),
     getSalesByCountry(period),
   ]);
@@ -113,13 +118,15 @@ export default async function DashboardPage({
         <BestSellerCard
           items={bestSellers}
           currency={currency}
-          action={viewAll}
+          action={viewAll("/admin/products")}
           className="xl:col-span-2"
         />
         <RecentTransactionsCard
           transactions={transactions}
           currency={currency}
-          action={viewAll}
+          sort={sort}
+          direction={dir}
+          action={viewAll("/admin/sales")}
           className="xl:col-span-3"
         />
       </div>

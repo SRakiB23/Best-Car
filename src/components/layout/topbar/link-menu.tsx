@@ -1,7 +1,6 @@
 "use client";
 
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { Popover, PopoverItem } from "@/components/ui/popover";
@@ -56,13 +55,5 @@ export function LinkMenu({
   );
 }
 
-export function MenuFooterLink({ href, children }: { href: string; children: ReactNode }) {
-  return (
-    <Link
-      href={href}
-      className="block border-t border-line px-4 py-2.5 text-center text-xs font-medium text-brand-500 transition hover:bg-canvas"
-    >
-      {children}
-    </Link>
-  );
-}
+export const menuFooterClass =
+  "block w-full border-t border-line px-4 py-2.5 text-center text-xs font-medium text-brand-500 transition hover:bg-canvas";

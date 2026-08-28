@@ -1,15 +1,37 @@
-export const dateRangeOptions = [
-  { value: "7d", label: "01 Jan 2024 - 07 Jan 2024" },
-  { value: "30d", label: "01 Jan 2024 - 31 Jan 2024" },
-  { value: "90d", label: "01 Jan 2024 - 31 Mar 2024" },
-  { value: "365d", label: "01 Jan 2024 - 31 Dec 2024" },
-] as const;
+export const rangeDays = { "7d": 7, "30d": 30, "90d": 90, "365d": 365 } as const;
 
-export const chartYearOptions = [
-  { value: "2021", label: "2021" },
-  { value: "2022", label: "2022" },
-  { value: "2023", label: "2023" },
-] as const;
+export type DateRange = keyof typeof rangeDays;
+
+const dayFormat = new Intl.DateTimeFormat("en-GB", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
+function rangeLabel(days: number, today = new Date()) {
+  const start = new Date(today);
+  start.setUTCDate(start.getUTCDate() - (days - 1));
+  return `${dayFormat.format(start)} - ${dayFormat.format(today)}`;
+}
+
+export const dateRangeOptions = (Object.keys(rangeDays) as DateRange[]).map((value) => ({
+  value,
+  label: rangeLabel(rangeDays[value]),
+}));
+
+const currentYear = new Date().getUTCFullYear();
+
+export const chartYearOptions = [currentYear - 2, currentYear - 1, currentYear].map((year) => ({
+  value: String(year),
+  label: String(year),
+}));
+
+export type ChartYear = string;
+
+export const periodDays = { week: 7, month: 30, year: 365 } as const;
+
+export type Period = keyof typeof periodDays;
 
 export const periodOptions = [
   { value: "week", label: "This Week" },
@@ -17,15 +39,11 @@ export const periodOptions = [
   { value: "year", label: "This Year" },
 ] as const;
 
-export type DateRange = (typeof dateRangeOptions)[number]["value"];
-export type ChartYear = (typeof chartYearOptions)[number]["value"];
-export type Period = (typeof periodOptions)[number]["value"];
-
 export const filterKeys = { range: "range", year: "year", period: "period" } as const;
 
 function parse<T extends string>(
   value: string | string[] | undefined,
-  allowed: readonly { value: T }[],
+  allowed: readonly { value: string }[],
   fallback: T,
 ): T {
   return allowed.some((option) => option.value === value) ? (value as T) : fallback;
@@ -36,8 +54,8 @@ export type DashboardSearchParams = Record<string, string | string[] | undefined
 export function readFilters(params: DashboardSearchParams) {
   return {
     range: parse<DateRange>(params.range, dateRangeOptions, "7d"),
-    year: parse<ChartYear>(params.year, chartYearOptions, "2023"),
     period: parse<Period>(params.period, periodOptions, "week"),
+    year: parse<ChartYear>(params.year, chartYearOptions, String(currentYear)),
   };
 }
 

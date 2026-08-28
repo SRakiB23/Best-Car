@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Link from "next/link";
 import {
   IconBell,
   IconCashRegister,
@@ -11,9 +12,7 @@ import {
   IconReceipt2,
   IconSearch,
   IconSettings,
-  IconTag,
   IconUser,
-  IconWorld,
 } from "@tabler/icons-react";
 
 import { Avatar } from "@/components/ui/avatar";
@@ -24,7 +23,8 @@ import { AddNewModal } from "./topbar/add-new-modal";
 import { FullscreenToggle } from "./topbar/fullscreen-toggle";
 import { InboxMenu } from "./topbar/inbox-menu";
 import { LanguageMenu } from "./topbar/language-menu";
-import { LinkMenu, MenuFooterLink } from "./topbar/link-menu";
+import { LinkMenu } from "./topbar/link-menu";
+import { SignOutButton } from "./topbar/sign-out";
 import { StoreSelect } from "./topbar/store-select";
 import { useShell } from "./shell-context";
 
@@ -39,12 +39,6 @@ const posLinks = [
     href: "/admin/pos/shifts",
     icon: <IconClipboardList size={16} stroke={1.6} />,
   },
-];
-
-const settingsLinks = [
-  { label: "General settings", href: "/admin/settings", icon: <IconSettings size={16} stroke={1.6} /> },
-  { label: "Website settings", href: "/admin/settings/website", icon: <IconWorld size={16} stroke={1.6} /> },
-  { label: "Tax rates", href: "/admin/settings/tax-rates", icon: <IconTag size={16} stroke={1.6} /> },
 ];
 
 export type TopbarData = {
@@ -141,12 +135,11 @@ export function Topbar({ stores, notifications, messages, user }: TopbarData) {
             }))}
           />
 
-          <LinkMenu
-            label={t("Settings")}
-            triggerClassName={iconButton}
-            trigger={<IconSettings size={18} stroke={1.8} />}
-            links={translateLinks(settingsLinks)}
-          />
+          <Tooltip label={t("Settings")}>
+            <Link href="/admin/settings" aria-label={t("Settings")} className={iconButton}>
+              <IconSettings size={18} stroke={1.8} />
+            </Link>
+          </Tooltip>
         </div>
 
         <LinkMenu
@@ -164,7 +157,7 @@ export function Topbar({ stores, notifications, messages, user }: TopbarData) {
             </div>
           }
           links={translateLinks(profileLinks)}
-          footer={<MenuFooterLink href="/logout">{t("Sign out")}</MenuFooterLink>}
+          footer={<SignOutButton />}
         />
       </div>
     </header>

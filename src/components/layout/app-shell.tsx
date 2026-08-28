@@ -24,7 +24,7 @@ function ShellFrame({ children, topbar }: { children: React.ReactNode; topbar: T
 
         <footer className="flex flex-col gap-1 border-t border-line px-4 py-4 text-xs text-ink-400 sm:flex-row sm:items-center sm:justify-between lg:px-6">
           <p>{new Date().getFullYear()} © All Right Reserved</p>
-          <p>Designed &amp; Developed</p>
+          <p>Developed by <b>Sazzad Bashar Rakib</b></p>
         </footer>
       </div>
     </div>

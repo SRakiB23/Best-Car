@@ -12,6 +12,12 @@ type LeadWebhookBase = {
   lead_id: string;
   customer_name: string;
   customer_email: string;
+  /**
+   * On both events deliberately. A field that appears on only one of them is a
+   * field a Zap can be configured against a sample that does not contain it, and
+   * the mapping then stays silently blank for every run.
+   */
+  customer_phone: string;
   vehicle: string | null;
   pickup_date: string | null;
   return_date: string | null;
@@ -25,7 +31,6 @@ export type LeadCreatedPayload = LeadWebhookBase & {
 /** Sent once the model has scored the lead and the result is saved. */
 export type LeadQualifiedPayload = LeadWebhookBase & {
   event: "lead_qualified";
-  customer_phone: string;
   message: string;
   lead_score: number;
   priority: string;

@@ -35,11 +35,11 @@ export function FormMessage({ state }: { state: FormState }) {
   return (
     <p
       role="status"
-      className={`flex items-center gap-1.5 text-[13px] font-medium ${
+      className={`flex min-w-0 items-center gap-1.5 text-[13px] font-medium ${
         success ? "text-positive" : "text-negative"
       }`}
     >
-      <Glyph size={15} stroke={2.2} />
+      <Glyph size={15} stroke={2.2} className="shrink-0" />
       {state.message}
     </p>
   );

@@ -78,7 +78,9 @@ export function AiAdvisor() {
 
   return (
     <>
-      <div className="fixed bottom-5 right-5 z-50 sm:bottom-8 sm:right-8">
+      {/* Raised clear of the "Powered by Netlify" badge, which is pinned to the
+          same corner on the deployed site and covered this pill. */}
+      <div className="fixed bottom-15 right-5 z-50 sm:right-8">
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -108,7 +110,7 @@ export function AiAdvisor() {
           </span>
 
           <span className="text-left leading-tight">
-            <span className="block text-sm font-bold sm:text-base">Drowning in options?</span>
+            <span className="block text-sm font-bold sm:text-base">Need Help?</span>
             <span className="block text-[11px] font-medium text-night-900/70 sm:text-xs">
               Let AI pick your car
             </span>
@@ -123,7 +125,7 @@ export function AiAdvisor() {
         description="Describe your trip and we'll shortlist cars from our fleet."
         className="max-w-2xl"
       >
-        <div className="max-h-[70vh] overflow-y-auto px-5 py-5">
+        <div className="max-h-[70dvh] overflow-y-auto px-5 py-5">
           <form onSubmit={submit}>
             <label htmlFor="ai-prompt" className="text-sm font-medium text-ink-700">
               What do you need?

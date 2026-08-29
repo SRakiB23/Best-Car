@@ -26,7 +26,9 @@ export function VehicleInquiry({
 
   return (
     <>
-      <div className="fixed bottom-22 right-5 z-50 sm:bottom-30 sm:right-8">
+      {/* Sits one pill above the AI advisor; both are lifted by the same amount
+          so the Netlify badge clears them without changing their spacing. */}
+      <div className="fixed bottom-32 right-5 z-50 sm:bottom-37 sm:right-8">
         <button
           type="button"
           onClick={() => setOpen(true)}
@@ -47,7 +49,7 @@ export function VehicleInquiry({
         description="Tell us what you need and our rental team will reply by email, usually within a few hours."
         className="max-w-xl"
       >
-        <div className="max-h-[70vh] overflow-y-auto px-5 py-5">
+        <div className="max-h-[70dvh] overflow-y-auto px-5 py-5">
           <InquiryForm vehicleId={vehicleId} bare />
         </div>
       </Modal>

@@ -28,7 +28,8 @@ export function Pagination({
   const go = (next: number) => setParams({ [listKeys.page]: String(next) });
 
   const numbers = windowed(page, totalPages);
-  const step = "grid size-8 place-items-center rounded-md text-[13px] transition";
+  // Larger on touch, original size once there is a pointer and a bigger screen.
+  const step = "grid size-9 place-items-center rounded-md text-[13px] transition sm:size-8";
 
   return (
     <div className="flex flex-col items-center justify-between gap-3 border-t border-line px-5 py-3.5 sm:flex-row">

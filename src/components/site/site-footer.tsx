@@ -41,8 +41,10 @@ const socials = [
 export function SiteFooter() {
   return (
     <footer className="bg-night-900">
-      <Container className="grid gap-10 py-14 sm:grid-cols-2 sm:py-16 lg:grid-cols-[1.2fr_repeat(3,1fr)] lg:py-20">
-        <div className="max-w-sm sm:col-span-2 lg:col-span-1">
+      {/* Three link columns at md so "Socials" is not left alone on a row of its
+          own beside an empty cell, which is what a 2-wide grid produced. */}
+      <Container className="grid gap-10 py-14 sm:grid-cols-2 sm:py-16 md:grid-cols-3 lg:grid-cols-[1.2fr_repeat(3,1fr)] lg:py-20">
+        <div className="max-w-sm sm:col-span-2 md:col-span-3 lg:col-span-1">
           <Image
             src="/client-side/BestCarLogo.jpeg"
             alt="Best Car"

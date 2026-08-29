@@ -1,6 +1,6 @@
 import { isAiConfigured } from "@/lib/ai/config";
 import { AiError, aiErrorMessages, toAiError } from "@/lib/ai/errors";
-import { checkRateLimit, rateLimitKey } from "@/lib/ai/rate-limit";
+import { clientIp, recommendLimiter } from "@/lib/rate-limit";
 import { aiFeature, recommendRequestSchema } from "@/lib/ai/recommendation";
 import { logAiInteraction } from "@/services/ai/interactions";
 import { recommendVehicles } from "@/services/ai/recommend";
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     return fail(new AiError("AI_NOT_CONFIGURED", "GEMINI_API_KEY is not set"));
   }
 
-  const limit = checkRateLimit(rateLimitKey(request));
+  const limit = recommendLimiter.check(clientIp(request.headers));
   if (!limit.allowed) {
     return fail(new AiError("AI_RATE_LIMITED", "Rate limit exceeded"), {
       "Retry-After": String(limit.retryAfterSeconds),

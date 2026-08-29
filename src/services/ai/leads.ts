@@ -33,7 +33,7 @@ type LeadRecord = {
   returnDate: string | null;
 };
 
-export async function qualifyLead(leadId: string): Promise<QualifyLeadResult> {
+export async function qualifyLead(leadId: string, staffId: string): Promise<QualifyLeadResult> {
   const startedAt = Date.now();
   const lead = await loadLead(leadId);
 
@@ -75,6 +75,7 @@ export async function qualifyLead(leadId: string): Promise<QualifyLeadResult> {
       usage: generated.usage,
     } as Json,
     latencyMs,
+    userId: staffId,
   });
 
   const qualifiedAt = await applyQualification(lead.id, value, generated.model, interactionId);

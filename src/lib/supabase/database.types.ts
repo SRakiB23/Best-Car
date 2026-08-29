@@ -701,6 +701,7 @@ export type Database = {
           p_request: Json
           p_response?: Json
           p_status?: string
+          p_user_id?: string
         }
         Returns: string
       }

@@ -1,9 +1,11 @@
 "use server";
 
+import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 
 import type { FormState } from "./form-state";
+import { clientIp, inquiryLimiter } from "./rate-limit";
 import { createClient } from "./supabase/server";
 import { sendLeadToZapier } from "./zapier";
 
@@ -95,6 +97,15 @@ export async function submitInquiry(
   }
 
   if (Object.keys(errors).length) return { status: "error", errors };
+
+  // create_lead throttles per email address, which a new address defeats. This
+  // is the throttle a flood cannot pick its own value for: every inquiry costs
+  // a webhook call, and soon a model call to qualify it.
+  const limit = inquiryLimiter.check(clientIp(await headers()));
+
+  if (!limit.allowed) {
+    return { status: "error", message: messages.TOO_MANY_INQUIRIES };
+  }
 
   const supabase = await createClient();
 

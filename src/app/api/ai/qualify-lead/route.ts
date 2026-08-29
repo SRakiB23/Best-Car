@@ -1,7 +1,7 @@
 import { aiConfig, isAiConfigured } from "@/lib/ai/config";
 import { AiError, leadErrorMessages, toAiError } from "@/lib/ai/errors";
 import { leadAiFeature, qualifyLeadRequestSchema } from "@/lib/ai/lead-qualification";
-import { checkRateLimit } from "@/lib/ai/rate-limit";
+import { qualifyLeadLimiter } from "@/lib/rate-limit";
 import { currentViewer } from "@/lib/auth";
 import { logAiInteraction } from "@/services/ai/interactions";
 import { qualifyLead } from "@/services/ai/leads";
@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     return fail(new AiError("AI_NOT_CONFIGURED", "GEMINI_API_KEY is not set"));
   }
 
-  const limit = checkRateLimit(`lead:${viewer.id}`);
+  const limit = qualifyLeadLimiter.check(viewer.id);
   if (!limit.allowed) {
     return fail(new AiError("AI_RATE_LIMITED", "Rate limit exceeded"), {
       "Retry-After": String(limit.retryAfterSeconds),
@@ -53,7 +53,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await qualifyLead(parsed.data.leadId);
+    const result = await qualifyLead(parsed.data.leadId, viewer.id);
     return Response.json(result, { status: 200 });
   } catch (error) {
     const aiError = toAiError(error);
@@ -67,6 +67,7 @@ export async function POST(request: Request) {
         request: { leadId: parsed.data.leadId },
         status: "error",
         error: `${aiError.code}: ${aiError.message}`,
+        userId: viewer.id,
       });
     }
 

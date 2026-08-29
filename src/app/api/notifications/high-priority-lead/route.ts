@@ -5,6 +5,7 @@ import {
 } from "@/lib/notifications/config";
 import { leadAlertSchema } from "@/lib/notifications/lead-alert";
 import { sendLeadAlert } from "@/lib/notifications/send-lead-alert";
+import { clientIp, notificationLimiter } from "@/lib/rate-limit";
 
 /** The Resend key must never reach the browser, so this stays on the server. */
 export const runtime = "nodejs";
@@ -29,6 +30,18 @@ export async function POST(request: Request) {
     // Deliberately vague, and the token is never logged.
     console.warn("rejected unauthorised lead alert request");
     return fail(401, "UNAUTHORIZED", "Missing or invalid credentials.");
+  }
+
+  // Applied after the secret check so an unauthorised flood cannot exhaust the
+  // budget for Zapier. This bounds what a leaked secret is worth: mail costs
+  // money and a mailbox full of alerts is its own outage.
+  const limit = notificationLimiter.check(clientIp(request.headers));
+
+  if (!limit.allowed) {
+    return Response.json(
+      { success: false, error: { code: "RATE_LIMITED", message: "Too many alert requests." } },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } },
+    );
   }
 
   let body: unknown;

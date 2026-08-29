@@ -18,7 +18,9 @@ export async function BestSellerCard({ items, currency, action, className }: Bes
     <Card className={className}>
       <CardHeader title={t("Most Rented")} action={action} />
 
-      <CardBody className="space-y-4">
+      {/* One column on a phone, two while the card is full width on a tablet,
+          back to one once it shares the row with the transactions table. */}
+      <CardBody className="grid gap-4 sm:grid-cols-2 sm:gap-x-6 xl:grid-cols-1">
         {items.map((item) => (
           <div key={item.id} className="flex items-center gap-3">
             <Thumbnail src={item.image} alt={item.name} />

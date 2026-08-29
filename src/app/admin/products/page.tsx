@@ -1,8 +1,17 @@
 import { ProductRowActions } from "@/components/products/product-row-actions";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { MobileSort } from "@/components/ui/mobile-sort";
 import { PageHeader } from "@/components/ui/page-header";
 import { Pagination } from "@/components/ui/pagination";
+import {
+  RecordActions,
+  RecordCard,
+  RecordField,
+  RecordFields,
+  RecordHeading,
+  RecordList,
+} from "@/components/ui/record-list";
 import { SearchField } from "@/components/ui/search-field";
 import { SortLink } from "@/components/ui/sort-link";
 import { StockPill } from "@/components/ui/stock-pill";
@@ -23,6 +32,10 @@ const columns = [
   { label: "Revenue" },
   { label: "Actions" },
 ] as const;
+
+const sortOptions = columns
+  .filter((column) => "sortKey" in column)
+  .map((column) => ({ label: column.label, value: column.sortKey }));
 
 export default async function ProductsPage({
   searchParams,
@@ -46,7 +59,12 @@ export default async function ProductsPage({
       <Card>
         <CardHeader
           title={t("All Products")}
-          action={<SearchField key={params.q} value={params.q} placeholder={t("Search products")} />}
+          action={
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+              <MobileSort options={sortOptions} sort={params.sort} direction={params.dir} />
+              <SearchField key={params.q} value={params.q} placeholder={t("Search products")} />
+            </div>
+          }
         />
 
         {rows.length === 0 ? (
@@ -114,6 +132,49 @@ export default async function ProductsPage({
                 ))}
               </tbody>
             </Table>
+
+            <RecordList>
+              {rows.map((product) => (
+                <RecordCard key={product.id}>
+                  <RecordHeading
+                    media={<Thumbnail src={product.image} alt={product.name} />}
+                    title={<span className="line-clamp-2">{product.name}</span>}
+                    subtitle={product.category}
+                    aside={<StockPill stock={product.stock} threshold={lowStockThreshold} />}
+                  />
+
+                  <RecordFields>
+                    <RecordField label={t("Price")}>
+                      {formatAmount(product.price, currency)}
+                    </RecordField>
+
+                    <RecordField label={t("Revenue")}>
+                      <span className="font-semibold text-navy-900">
+                        {formatAmount(product.revenue, currency)}
+                      </span>
+                    </RecordField>
+
+                    <RecordField label={t("Units Sold")}>
+                      {product.sales.toLocaleString("en-US")}
+                    </RecordField>
+                  </RecordFields>
+
+                  <RecordActions>
+                    <ProductRowActions
+                      product={{
+                        id: product.id,
+                        name: product.name,
+                        category: product.category,
+                        price: product.price,
+                        stock: product.stock,
+                        image: product.image,
+                      }}
+                      sales={product.sales}
+                    />
+                  </RecordActions>
+                </RecordCard>
+              ))}
+            </RecordList>
 
             <Pagination
               page={params.page}

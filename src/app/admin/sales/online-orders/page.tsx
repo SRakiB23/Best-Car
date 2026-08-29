@@ -3,8 +3,17 @@ import { IconCalendar, IconClock, IconMapPin } from "@tabler/icons-react";
 import { CancelBookingAction } from "@/components/bookings/cancel-booking-action";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { MobileSort } from "@/components/ui/mobile-sort";
 import { PageHeader } from "@/components/ui/page-header";
 import { Pagination } from "@/components/ui/pagination";
+import {
+  RecordActions,
+  RecordCard,
+  RecordField,
+  RecordFields,
+  RecordHeading,
+  RecordList,
+} from "@/components/ui/record-list";
 import { SearchField } from "@/components/ui/search-field";
 import { SortLink } from "@/components/ui/sort-link";
 import { StatusFilter, type StatusOption } from "@/components/ui/status-filter";
@@ -26,6 +35,8 @@ const columns = [
   { label: "Booked", sortKey: "date" },
   { label: "Total", sortKey: "amount" },
 ] as const;
+
+const sortOptions = columns.map((column) => ({ label: column.label, value: column.sortKey }));
 
 const actionsColumn = "Actions";
 
@@ -72,8 +83,11 @@ export default async function OnlineOrdersPage({
         <CardHeader
           title={t("Bookings")}
           action={
-            <div className="flex flex-wrap items-center gap-2">
-              <StatusFilter value={status} options={statusOptions} />
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+              <div className="scrollbar-thin -mx-1 max-w-full overflow-x-auto px-1">
+                <StatusFilter value={status} options={statusOptions} className="w-max" />
+              </div>
+              <MobileSort options={sortOptions} sort={params.sort} direction={params.dir} />
               <SearchField
                 key={params.q}
                 value={params.q}
@@ -179,6 +193,73 @@ export default async function OnlineOrdersPage({
                 ))}
               </tbody>
             </Table>
+
+            <RecordList>
+              {rows.map((booking) => (
+                <RecordCard key={booking.id}>
+                  <RecordHeading
+                    media={<Thumbnail src={booking.image} alt={booking.vehicle} />}
+                    title={<span className="line-clamp-2">{booking.vehicle}</span>}
+                    subtitle={
+                      <span className="font-medium text-link">{booking.reference}</span>
+                    }
+                    aside={<StatusPill status={booking.status} />}
+                  />
+
+                  <RecordFields>
+                    <RecordField label={t("Customer")} wide>
+                      <span className="font-medium text-navy-900">{booking.customerName}</span>
+                      <span className="mt-0.5 block truncate text-xs text-ink-500">
+                        {booking.customerEmail}
+                      </span>
+                    </RecordField>
+
+                    <RecordField label={t("Rental Period")} wide>
+                      <span className="flex flex-wrap items-center gap-1.5">
+                        <IconCalendar size={13} stroke={1.6} className="shrink-0" />
+                        {dayFormat.format(new Date(booking.startDate))} &ndash;{" "}
+                        {dayFormat.format(new Date(booking.endDate))}
+                        <span className="text-ink-500">
+                          ({booking.days} {t("days")})
+                        </span>
+                      </span>
+                      {booking.pickupLocation ? (
+                        <span className="mt-1 flex items-center gap-1.5 text-xs text-ink-500">
+                          <IconMapPin size={13} stroke={1.6} className="shrink-0" />
+                          {booking.pickupLocation}
+                        </span>
+                      ) : null}
+                    </RecordField>
+
+                    <RecordField label={t("Total")}>
+                      <span className="font-semibold text-navy-900">
+                        {formatAmount(booking.totalAmount, currency)}
+                      </span>
+                      <span className="mt-0.5 block text-xs text-ink-500">
+                        {formatAmount(booking.pricePerDay, currency)} / {t("day")}
+                      </span>
+                    </RecordField>
+
+                    <RecordField label={t("Booked")}>
+                      <span className="flex items-center gap-1 text-ink-500">
+                        <IconClock size={13} stroke={1.6} />
+                        {booking.bookedAgo}
+                      </span>
+                    </RecordField>
+                  </RecordFields>
+
+                  {booking.status === "confirmed" ? (
+                    <RecordActions>
+                      <CancelBookingAction
+                        reference={booking.reference}
+                        customer={booking.customerName}
+                        vehicle={booking.vehicle}
+                      />
+                    </RecordActions>
+                  ) : null}
+                </RecordCard>
+              ))}
+            </RecordList>
 
             <Pagination
               page={params.page}

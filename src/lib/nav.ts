@@ -14,11 +14,24 @@ export const adminRoot = "/admin";
 
 export type NavIconSource = string | Icon;
 
+/**
+ * Most of this menu comes from the dashboard template and has no screen behind
+ * it. Rather than let someone click through to a stub, anything without
+ * `ready: true` renders as a disabled row marked "Soon" and is left out of the
+ * search index. Build the screen, add the flag, and the row lights up.
+ */
 export type NavItem = {
   label: string;
   href: string;
   icon: NavIconSource;
-  children?: { label: string; href: string }[];
+  ready?: boolean;
+  children?: NavChild[];
+};
+
+export type NavChild = {
+  label: string;
+  href: string;
+  ready?: boolean;
 };
 
 export type NavSection = {
@@ -44,14 +57,14 @@ export const navSections: NavSection[] = [
   {
     title: "Main",
     items: [
-      { label: "Dashboard", href: "/admin", icon: IconLayoutGrid },
+      { label: "Dashboard", href: "/admin", icon: IconLayoutGrid, ready: true },
       { label: "Super Admin", href: "/admin/super-admin", icon: IconUserEdit },
     ],
   },
   {
     title: "Inventory",
     items: [
-      { label: "Products", href: "/admin/products", icon: IconBox },
+      { label: "Products", href: "/admin/products", icon: IconBox, ready: true },
       { label: "Create Product", href: "/admin/products/create", icon: `${icons}/create-product.svg` },
       { label: "Expired Products", href: "/admin/products/expired", icon: `${icons}/expired.svg` },
       { label: "Low Stocks", href: "/admin/products/low-stock", icon: `${icons}/stock.svg` },
@@ -84,12 +97,13 @@ export const navSections: NavSection[] = [
         label: "Sales",
         href: "/admin/sales",
         icon: `${icons}/sales.svg`,
+        ready: true,
         children: [
-          { label: "Online Orders", href: "/admin/sales/online-orders" },
+          { label: "Online Orders", href: "/admin/sales/online-orders", ready: true },
           { label: "POS Orders", href: "/admin/sales/pos-orders" },
         ],
       },
-      { label: "Leads", href: "/admin/leads", icon: IconUserSearch },
+      { label: "Leads", href: "/admin/leads", icon: IconUserSearch, ready: true },
       { label: "Invoices", href: "/admin/invoices", icon: `${icons}/invoice.svg` },
       { label: "Sales Return", href: "/admin/sales-return", icon: `${icons}/sales-return.svg` },
       { label: "Quotation", href: "/admin/quotation", icon: `${icons}/quotation.svg` },
@@ -115,4 +129,14 @@ export const navSections: NavSection[] = [
 
 const navHrefs = navSections.flatMap((section) =>
   section.items.flatMap((item) => [item.href, ...(item.children ?? []).map((child) => child.href)]),
+);
+
+/** Every destination that actually exists, for the command palette to offer. */
+export const navDestinations = navSections.flatMap((section) =>
+  section.items.flatMap((item) => [
+    ...(item.ready ? [{ label: item.label, href: item.href, section: section.title ?? "" }] : []),
+    ...(item.children ?? [])
+      .filter((child) => child.ready)
+      .map((child) => ({ label: child.label, href: child.href, section: item.label })),
+  ]),
 );

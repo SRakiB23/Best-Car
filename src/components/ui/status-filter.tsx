@@ -17,15 +17,17 @@ const paymentOptions: StatusOption[] = [
 export function StatusFilter({
   value,
   options = paymentOptions,
+  className,
 }: {
   value: string;
   options?: StatusOption[];
+  className?: string;
 }) {
   const { t } = useI18n();
   const setParams = useSetParams();
 
   return (
-    <div className="flex items-center gap-1 rounded-lg bg-surface p-1">
+    <div className={cn("flex items-center gap-1 rounded-lg bg-surface p-1", className)}>
       {options.map((option) => (
         <button
           key={option.value || "all"}

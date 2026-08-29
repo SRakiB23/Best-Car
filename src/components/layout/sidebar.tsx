@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronRight, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -33,9 +33,19 @@ function NavIcon({ icon, className }: { icon: NavIconSource; className?: string 
   );
 }
 
+/** Marks a row that leads nowhere yet, so the label alone cannot promise a screen. */
+function SoonPill() {
+  return (
+    <span className="ml-auto shrink-0 rounded-full bg-canvas px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink-400">
+      Soon
+    </span>
+  );
+}
+
 function NavRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
   const pathname = usePathname();
   const { t } = useI18n();
+  const { setMobileOpen } = useShell();
   const activeChild = (item.children ?? []).some((child) => isNavActive(pathname, child.href));
   const active = activeChild || isNavActive(pathname, item.href);
   const [open, setOpen] = useState(active);
@@ -44,6 +54,28 @@ function NavRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
     "group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors",
     active ? "bg-brand-50 text-brand-500" : "text-ink-800 hover:bg-canvas",
   );
+
+  // Nothing to navigate to, so this is not a link and not focusable. It stays
+  // in the menu to show where the product is going, and says so plainly.
+  if (!item.ready) {
+    return (
+      <li>
+        <span
+          aria-disabled
+          title={collapsed ? `${t(item.label)} — coming soon` : undefined}
+          className={cn(rowClasses, "cursor-default text-ink-400 hover:bg-transparent")}
+        >
+          <NavIcon icon={item.icon} className="text-ink-300" />
+          {!collapsed && (
+            <>
+              <span className="truncate">{t(item.label)}</span>
+              <SoonPill />
+            </>
+          )}
+        </span>
+      </li>
+    );
+  }
 
   // The icon sits a shade lighter than the label, so it cannot ride on the
   // row's currentColor.
@@ -75,17 +107,28 @@ function NavRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
           <ul className="mt-1 space-y-1 border-l border-line pl-4 ml-[22px]">
             {item.children.map((child) => (
               <li key={child.href}>
-                <Link
-                  href={child.href}
-                  className={cn(
-                    "block rounded-md px-3 py-1.5 text-[13px] transition-colors",
-                    isNavActive(pathname, child.href)
-                      ? "font-medium text-brand-500"
-                      : "text-ink-800 hover:text-brand-500",
-                  )}
-                >
-                  {t(child.label)}
-                </Link>
+                {child.ready ? (
+                  <Link
+                    href={child.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={cn(
+                      "block rounded-md px-3 py-1.5 text-[13px] transition-colors",
+                      isNavActive(pathname, child.href)
+                        ? "font-medium text-brand-500"
+                        : "text-ink-800 hover:text-brand-500",
+                    )}
+                  >
+                    {t(child.label)}
+                  </Link>
+                ) : (
+                  <span
+                    aria-disabled
+                    className="flex cursor-default items-center rounded-md px-3 py-1.5 text-[13px] text-ink-400"
+                  >
+                    <span className="truncate">{t(child.label)}</span>
+                    <SoonPill />
+                  </span>
+                )}
               </li>
             ))}
           </ul>
@@ -96,7 +139,15 @@ function NavRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
 
   return (
     <li>
-      <Link href={item.href} className={rowClasses} title={collapsed ? t(item.label) : undefined}>
+      <Link
+        href={item.href}
+        // The drawer is an overlay: leaving it open would hide the page the tap
+        // just asked for. Closing here rather than on arrival means it happens
+        // immediately, not after the new screen has finished loading.
+        onClick={() => setMobileOpen(false)}
+        className={rowClasses}
+        title={collapsed ? t(item.label) : undefined}
+      >
         <NavIcon icon={item.icon} className={iconClasses} />
         {!collapsed && <span className="truncate">{t(item.label)}</span>}
       </Link>
@@ -107,6 +158,13 @@ function NavRow({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
 export function Sidebar() {
   const { collapsed, toggleCollapsed, mobileOpen, setMobileOpen } = useShell();
   const { t } = useI18n();
+  const pathname = usePathname();
+
+  // Backstop for every other way out of the drawer — the logo, a notification
+  // link, a search result. Whatever navigates, the overlay should not survive it.
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname, setMobileOpen]);
 
   const railed = collapsed && !mobileOpen;
 
@@ -144,7 +202,11 @@ export function Sidebar() {
 
         <div className="flex h-16 items-center gap-2 px-4">
           {!railed && (
-            <Link href={adminRoot} className="flex min-w-0 items-center">
+            <Link
+              href={adminRoot}
+              onClick={() => setMobileOpen(false)}
+              className="flex min-w-0 items-center"
+            >
               <Image src="/sidebar-icons/Logo.png" alt="BestCar" width={115} height={36} priority />
             </Link>
           )}

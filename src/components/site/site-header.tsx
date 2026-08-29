@@ -3,13 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { IconMenu2, IconX } from "@tabler/icons-react";
 
 import { Container } from "@/components/site/section";
 import { SignOutButton } from "@/components/site/sign-out-button";
 import { buttonClass } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
+import { scrollToId } from "@/lib/scroll-to-hash";
+import { useDismiss } from "@/lib/use-dismiss";
 
 const links = [
   { label: "Home", href: "/#home" },
@@ -31,6 +33,34 @@ export function SiteHeader({ viewer }: { viewer?: HeaderViewer | null }) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [spied, setSpied] = useState<string | null>(null);
+
+  // The panel floats over the page now, so tapping past it has to dismiss it.
+  // Every link in the panel closes it on the way out, so this only has to
+  // handle taps that land elsewhere.
+  const header = useRef<HTMLElement>(null);
+  const close = useCallback(() => setOpen(false), []);
+  useDismiss(open, header, close);
+
+  /**
+   * On the storefront a hash link is not navigation, it is a scroll — and the
+   * browser's own hash scroll is aimed once, before the page has finished
+   * settling. Taking it over lets us keep the section pinned while it does.
+   * Off the storefront this stays a normal link, so the page loads at the
+   * anchor and CSS `scroll-padding-top` handles the offset.
+   */
+  const onHashClick = useCallback(
+    (event: React.MouseEvent, href: string) => {
+      const id = href.split("#")[1];
+      if (!id || pathname !== "/" || event.metaKey || event.ctrlKey || event.shiftKey) return;
+
+      event.preventDefault();
+      setSpied(href);
+      setOpen(false);
+      window.history.pushState(null, "", href);
+      scrollToId(id);
+    },
+    [pathname],
+  );
 
   // Off the storefront the route decides; on it, the scrolled-to section does.
   const active =
@@ -75,6 +105,7 @@ export function SiteHeader({ viewer }: { viewer?: HeaderViewer | null }) {
 
   return (
     <header
+      ref={header}
       className={cn(
         "sticky top-0 z-40 transition-all duration-300 ease-out",
         scrolled ? "bg-night-900/85 shadow-float backdrop-blur-md" : "bg-night-900",
@@ -105,7 +136,10 @@ export function SiteHeader({ viewer }: { viewer?: HeaderViewer | null }) {
             <Link
               key={link.href}
               href={link.href}
-              onClick={() => setSpied(link.href)}
+              onClick={(event) => {
+                setSpied(link.href);
+                onHashClick(event, link.href);
+              }}
               className={cn(
                 "relative py-1 text-[13px] font-medium transition-colors duration-200",
                 active === link.href ? "text-gold-300" : "text-white/80 hover:text-white",
@@ -166,66 +200,83 @@ export function SiteHeader({ viewer }: { viewer?: HeaderViewer | null }) {
         </button>
       </Container>
 
-      {/* grid-rows 0fr→1fr animates to the panel's natural height without measuring it. */}
-      <Container
-        inert={!open}
+      {/* Overlaid rather than stacked inside the header. In the flow, opening
+          and closing it changed the header's height, which moved every anchor
+          on the page — tap a section link and the panel collapsed mid-scroll,
+          landing you a panel's height past the heading you asked for. */}
+      <div
         className={cn(
-          "grid transition-all duration-300 ease-out lg:hidden",
-          open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+          "absolute inset-x-0 top-full lg:hidden",
+          !open && "pointer-events-none",
         )}
       >
-        <div className="min-h-0 overflow-hidden">
-          <div className="mb-4 rounded-2xl border border-white/10 bg-night-800 p-4">
-          <nav className="flex flex-col">
-            {links.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => {
-                  setSpied(link.href);
-                  setOpen(false);
-                }}
-                className={cn(
-                  "rounded-lg px-2 py-2.5 text-[13px] font-medium",
-                  active === link.href ? "text-gold-300" : "text-white/80 hover:text-white",
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+        {/* grid-rows 0fr→1fr animates to the panel's natural height without measuring it. */}
+        <Container
+          inert={!open}
+          className={cn(
+            "grid transition-all duration-300 ease-out",
+            open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+          )}
+        >
+          <div className="min-h-0 overflow-hidden">
+            <div className="mb-4 rounded-2xl border border-white/10 bg-night-800 p-4 shadow-float">
+              <nav className="flex flex-col">
+                {links.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={(event) => {
+                      setSpied(link.href);
+                      setOpen(false);
+                      onHashClick(event, link.href);
+                    }}
+                    className={cn(
+                      "rounded-lg px-2 py-2.5 text-[13px] font-medium",
+                      active === link.href ? "text-gold-300" : "text-white/80 hover:text-white",
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </nav>
 
-          <div className="mt-3 flex items-center gap-3 border-t border-white/10 pt-3">
-            {viewer ? (
-              <>
-                <Link
-                  href={viewer.isStaff ? "/admin" : "/account/bookings"}
-                  onClick={() => setOpen(false)}
-                  className="flex-1 rounded-lg border border-white/15 py-2 text-center text-[13px] font-medium text-white"
-                >
-                  {viewer.isStaff ? "Dashboard" : "My bookings"}
-                </Link>
-                <SignOutButton className={buttonClass("gold", "md", "h-11 flex-1 font-semibold")}>
-                  Sign out
-                </SignOutButton>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/register"
-                  className="flex-1 rounded-lg border border-white/15 py-2 text-center text-[13px] font-medium text-white"
-                >
-                  Register
-                </Link>
-                <Link href="/login" className={buttonClass("gold", "md", "h-11 flex-1 font-semibold")}>
-                  Log In
-                </Link>
-              </>
-            )}
+              <div className="mt-3 flex items-center gap-3 border-t border-white/10 pt-3">
+                {viewer ? (
+                  <>
+                    <Link
+                      href={viewer.isStaff ? "/admin" : "/account/bookings"}
+                      onClick={() => setOpen(false)}
+                      className="flex-1 rounded-lg border border-white/15 py-2 text-center text-[13px] font-medium text-white"
+                    >
+                      {viewer.isStaff ? "Dashboard" : "My bookings"}
+                    </Link>
+                    <SignOutButton className={buttonClass("gold", "md", "h-11 flex-1 font-semibold")}>
+                      Sign out
+                    </SignOutButton>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/register"
+                      onClick={() => setOpen(false)}
+                      className="flex-1 rounded-lg border border-white/15 py-2 text-center text-[13px] font-medium text-white"
+                    >
+                      Register
+                    </Link>
+                    <Link
+                      href="/login"
+                      onClick={() => setOpen(false)}
+                      className={buttonClass("gold", "md", "h-11 flex-1 font-semibold")}
+                    >
+                      Log In
+                    </Link>
+                  </>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </Container>
+        </Container>
+      </div>
     </header>
   );
 }

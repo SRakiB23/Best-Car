@@ -60,20 +60,20 @@
     @apply bg-canvas text-ink-700 font-sans text-sm antialiased;
   }
 
+  /* Every anchor stops clear of the sticky header instead of sliding under it.
+     As scroll-padding on the scroller it covers all of them — including the
+     ones a per-id list kept missing, like #fleet, #contact and #rental-details
+     — and applies to programmatic scrollIntoView too. */
+  html {
+    scroll-padding-top: 5.5rem;
+  }
+
   /* Header anchors glide instead of jumping. Gated so it never overrides a
-     reduced-motion preference, and offset to clear the sticky header. */
+     reduced-motion preference. */
   @media (prefers-reduced-motion: no-preference) {
     html {
       scroll-behavior: smooth;
     }
-  }
-
-  [id="home"],
-  [id="how-it-works"],
-  [id="why-choose-us"],
-  [id="testimonial"],
-  [id="booking"] {
-    scroll-margin-top: 5.5rem;
   }
 }
 

@@ -6,7 +6,7 @@ import { IconArrowRight, IconSearch } from "@tabler/icons-react";
 
 import { Thumbnail } from "@/components/ui/thumbnail";
 import { useI18n } from "@/lib/i18n-context";
-import { navSections } from "@/lib/nav";
+import { navDestinations } from "@/lib/nav";
 import { search } from "@/lib/search-actions";
 import { minQueryLength, noResults, type SearchHit, type SearchResults } from "@/lib/search";
 import { useDismiss } from "@/lib/use-dismiss";
@@ -52,17 +52,10 @@ export function SearchBox() {
     if (!asking) return [];
     const needle = term.toLowerCase();
 
-    return navSections
-      .flatMap((section) =>
-        section.items.flatMap((item) => [
-          { label: t(item.label), href: item.href, section: section.title ?? "" },
-          ...(item.children ?? []).map((child) => ({
-            label: t(child.label),
-            href: child.href,
-            section: t(item.label),
-          })),
-        ]),
-      )
+    // Only screens that exist. Offering an unbuilt one costs a click and a
+    // dead end, which is worse than the result simply not being there.
+    return navDestinations
+      .map((page) => ({ ...page, label: t(page.label), section: t(page.section) }))
       .filter((page) => page.label.toLowerCase().includes(needle))
       .slice(0, 4)
       .map((page) => ({

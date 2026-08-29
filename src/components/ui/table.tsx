@@ -4,9 +4,33 @@ import { cn } from "@/lib/cn";
 
 export const tableCell = "px-4 py-3 first:pl-4 last:pr-4 sm:first:pl-5 sm:last:pr-5";
 
-export function Table({ className, children, ...props }: ComponentProps<"table">) {
+/**
+ * Where a list stops being a table and becomes stacked cards. A table narrower
+ * than its content can only scroll sideways, which on a phone hides half the
+ * columns behind a gesture nobody discovers. `RecordList` renders the same rows
+ * below this width — the two share the token so they cannot drift apart and
+ * leave a range of screens with both, or neither.
+ */
+export type TableBreakpoint = "md" | "xl";
+
+export const showTableFrom: Record<TableBreakpoint, string> = {
+  md: "hidden md:block",
+  xl: "hidden xl:block",
+};
+
+export const showCardsBelow: Record<TableBreakpoint, string> = {
+  md: "md:hidden",
+  xl: "xl:hidden",
+};
+
+export function Table({
+  className,
+  children,
+  from = "md",
+  ...props
+}: ComponentProps<"table"> & { from?: TableBreakpoint }) {
   return (
-    <div className="scrollbar-thin overflow-x-auto">
+    <div className={cn("scrollbar-thin overflow-x-auto", showTableFrom[from])}>
       <table
         className={cn("w-full min-w-[560px] border-collapse text-left", className)}
         {...props}

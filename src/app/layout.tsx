@@ -12,8 +12,9 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "BestCar",
-  description: "Inventory, stock and sales management for car dealerships.",
+  title: "Best Car",
+  description:
+    "Rent a car from the Best Car fleet. Check availability, see the full price up front and book online in a couple of minutes.",
 };
 
 export default async function RootLayout({
@@ -21,8 +22,11 @@ export default async function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const locale = await getLocale();
 
+  // `data-scroll-behavior` tells the router the smooth scrolling in
+  // globals.css is deliberate, so it suppresses it during route changes rather
+  // than animating the jump to the top of a new page.
   return (
-    <html lang={locale} className={jakarta.variable}>
+    <html lang={locale} className={jakarta.variable} data-scroll-behavior="smooth">
       <body>
         <I18nProvider locale={locale}>{children}</I18nProvider>
       </body>

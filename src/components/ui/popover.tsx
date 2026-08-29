@@ -53,7 +53,9 @@ export function Popover({
         <div
           role="menu"
           className={cn(
-            "absolute right-0 top-full z-50 mt-2 min-w-[220px] overflow-hidden rounded-xl border border-line bg-white shadow-card",
+            // The cap keeps a fixed-width panel inside the viewport on a phone,
+            // where anchoring to the right edge would otherwise push it off-screen.
+            "absolute right-0 top-full z-50 mt-2 min-w-[220px] max-w-[calc(100vw-2rem)] overflow-hidden rounded-xl border border-line bg-white shadow-card",
             panelClassName,
           )}
         >

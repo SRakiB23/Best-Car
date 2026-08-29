@@ -2,8 +2,16 @@ import { IconClock } from "@tabler/icons-react";
 
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { MobileSort } from "@/components/ui/mobile-sort";
 import { PageHeader } from "@/components/ui/page-header";
 import { Pagination } from "@/components/ui/pagination";
+import {
+  RecordCard,
+  RecordField,
+  RecordFields,
+  RecordHeading,
+  RecordList,
+} from "@/components/ui/record-list";
 import { SearchField } from "@/components/ui/search-field";
 import { SortLink } from "@/components/ui/sort-link";
 import { StatusFilter } from "@/components/ui/status-filter";
@@ -24,6 +32,8 @@ const columns = [
   { label: "Date", sortKey: "date" },
   { label: "Amount", sortKey: "amount" },
 ] as const;
+
+const sortOptions = columns.map((column) => ({ label: column.label, value: column.sortKey }));
 
 const statuses: PaymentStatus[] = ["success", "pending", "cancelled"];
 
@@ -60,8 +70,11 @@ export default async function SalesPage({
         <CardHeader
           title={t("All Transactions")}
           action={
-            <div className="flex flex-wrap items-center gap-2">
-              <StatusFilter value={status} />
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+              <div className="scrollbar-thin -mx-1 max-w-full overflow-x-auto px-1">
+                <StatusFilter value={status} className="w-max" />
+              </div>
+              <MobileSort options={sortOptions} sort={params.sort} direction={params.dir} />
               <SearchField key={params.q} value={params.q} placeholder={t("Search product or reference")} />
             </div>
           }
@@ -130,6 +143,45 @@ export default async function SalesPage({
                 ))}
               </tbody>
             </Table>
+
+            <RecordList>
+              {rows.map((order) => (
+                <RecordCard key={order.id}>
+                  <RecordHeading
+                    media={<Thumbnail src={order.image} alt={order.product} />}
+                    title={<span className="line-clamp-2">{order.product}</span>}
+                    subtitle={
+                      <span className="flex items-center gap-1">
+                        <IconClock size={13} stroke={1.6} />
+                        {order.placedAgo}
+                      </span>
+                    }
+                    aside={
+                      <span className="text-[13px] font-semibold text-navy-900">
+                        {formatAmount(order.amount, currency)}
+                      </span>
+                    }
+                  />
+
+                  <RecordFields>
+                    <RecordField label={t("Payment")}>
+                      {order.paymentMethod}
+                      <span className="mt-0.5 block text-xs font-medium text-link">
+                        {order.reference}
+                      </span>
+                    </RecordField>
+
+                    <RecordField label={t("Status")}>
+                      <StatusPill status={order.status} />
+                    </RecordField>
+
+                    <RecordField label={t("Date")} wide>
+                      {dateFormat.format(new Date(order.placedAt))}
+                    </RecordField>
+                  </RecordFields>
+                </RecordCard>
+              ))}
+            </RecordList>
 
             <Pagination
               page={params.page}

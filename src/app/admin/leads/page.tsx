@@ -18,13 +18,23 @@ import { LeadStatusSelect } from "@/components/leads/lead-status-select";
 import { QualifyLeadButton } from "@/components/leads/qualify-lead-button";
 import { Card, CardHeader } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { MobileSort } from "@/components/ui/mobile-sort";
 import { PageHeader } from "@/components/ui/page-header";
 import { Pagination } from "@/components/ui/pagination";
+import {
+  RecordActions,
+  RecordCard,
+  RecordField,
+  RecordFields,
+  RecordHeading,
+  RecordList,
+} from "@/components/ui/record-list";
 import { SearchField } from "@/components/ui/search-field";
 import { SortLink } from "@/components/ui/sort-link";
 import { StatusFilter, type StatusOption } from "@/components/ui/status-filter";
 import { Table, TableHeadRow, Td, Th } from "@/components/ui/table";
 import { getPreferences, getTranslator } from "@/lib/account-store";
+import { cn } from "@/lib/cn";
 import { getLeads, leadSortKeys } from "@/lib/data";
 import type { DashboardSearchParams } from "@/lib/filters";
 import { formatAmount } from "@/lib/format";
@@ -32,20 +42,24 @@ import { pageCount, readListParams } from "@/lib/list-params";
 import type { LeadRow, LeadStatus } from "@/lib/types";
 
 /**
- * `className` hides the two columns the score already implies, so the table fits
- * a laptop without sideways scrolling. Priority and urgency stay in the row that
- * expands underneath, so nothing is actually lost at narrow widths.
+ * Eight columns need about 880px, which no phone or portrait tablet has. Below
+ * `xl` the same rows render as cards instead of scrolling sideways, so this
+ * table only ever draws at a width it actually fits.
  */
 const columns = [
   { label: "Customer", sortKey: "customer", className: "" },
   { label: "Inquiry", sortKey: null, className: "" },
   { label: "Lead Score", sortKey: "score", className: "" },
-  { label: "Priority", sortKey: null, className: "hidden xl:table-cell" },
-  { label: "Urgency", sortKey: "urgency", className: "hidden xl:table-cell" },
+  { label: "Priority", sortKey: null, className: "hidden 2xl:table-cell" },
+  { label: "Urgency", sortKey: "urgency", className: "hidden 2xl:table-cell" },
   { label: "Vehicle Preference", sortKey: null, className: "" },
   { label: "Stage", sortKey: "status", className: "" },
   { label: "Received", sortKey: "date", className: "" },
 ] as const;
+
+const sortOptions = columns
+  .filter((column) => column.sortKey !== null)
+  .map((column) => ({ label: column.label, value: column.sortKey as string }));
 
 const statuses: LeadStatus[] = ["new", "qualified", "contacted", "closed"];
 
@@ -95,8 +109,17 @@ export default async function LeadsPage({
             </span>
           }
           action={
-            <div className="flex flex-wrap items-center gap-2">
-              <StatusFilter value={status} options={statusOptions} />
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+              {/* Scrolls rather than wrapping into three rows of chips on a phone. */}
+              <div className="scrollbar-thin -mx-1 max-w-full overflow-x-auto px-1">
+                <StatusFilter value={status} options={statusOptions} className="w-max" />
+              </div>
+              <MobileSort
+                options={sortOptions}
+                sort={params.sort}
+                direction={params.dir}
+                until="xl"
+              />
               <SearchField
                 key={params.q}
                 value={params.q}
@@ -113,7 +136,7 @@ export default async function LeadsPage({
           />
         ) : (
           <>
-            <Table className="min-w-[880px]">
+            <Table className="min-w-[880px]" from="xl">
               <TableHeadRow>
                 {columns.map((column) => (
                   <Th key={column.label} className={column.className}>
@@ -139,6 +162,12 @@ export default async function LeadsPage({
               </tbody>
             </Table>
 
+            <RecordList until="xl">
+              {rows.map((lead) => (
+                <LeadCard key={lead.id} lead={lead} currency={currency} t={t} />
+              ))}
+            </RecordList>
+
             <Pagination
               page={params.page}
               totalPages={pageCount(total)}
@@ -154,6 +183,211 @@ export default async function LeadsPage({
 
 type Translate = (key: string) => string;
 
+type Currency = Parameters<typeof formatAmount>[1];
+
+/**
+ * The pieces below are shared by the table and the card list, so a lead reads
+ * the same either way and a change lands in both. Each renders content only —
+ * the cell or the field around it decides how much room it gets.
+ */
+function LeadContact({ lead }: { lead: LeadRow }) {
+  return (
+    <>
+      <p className="truncate text-[13px] font-semibold text-navy-900">{lead.customerName}</p>
+      {/* `truncate` has to sit on the text itself: as a bare flex child the
+          address keeps its intrinsic width and widens the whole column. */}
+      <p className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-500">
+        <IconMail size={12} stroke={1.6} className="shrink-0" />
+        <a href={`mailto:${lead.customerEmail}`} className="min-w-0 truncate hover:text-link">
+          {lead.customerEmail}
+        </a>
+      </p>
+      {lead.customerPhone ? (
+        <p className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-500">
+          <IconPhone size={12} stroke={1.6} className="shrink-0" />
+          {/* Tapping a number should dial it; on a phone this is the fastest
+              path from a high-priority lead to a conversation. */}
+          <a href={`tel:${lead.customerPhone}`} className="truncate hover:text-link">
+            {lead.customerPhone}
+          </a>
+        </p>
+      ) : null}
+    </>
+  );
+}
+
+function LeadInquiry({ lead, t, clamp }: { lead: LeadRow; t: Translate; clamp: string }) {
+  const intent = intentLabel(lead.intent);
+
+  return (
+    <>
+      <p className={cn("text-[13px] text-ink-700", clamp)}>{lead.message}</p>
+
+      {/* Dates the customer chose, kept visually distinct from anything the
+          model produced: a stated date needs no qualification to be acted on. */}
+      {lead.pickupDate ? (
+        <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-navy-900">
+          <IconCalendarEvent size={12} stroke={1.8} className="shrink-0 text-gold-600" />
+          {lead.pickupDate}
+          {lead.returnDate ? ` → ${lead.returnDate}` : ""}
+        </p>
+      ) : null}
+
+      <p className="mt-0.5 text-xs text-ink-400">
+        {intent ? t(intent) : t("Not yet classified")}
+        {lead.vehicle ? ` · ${lead.vehicle}` : ""}
+      </p>
+    </>
+  );
+}
+
+function LeadPreference({
+  lead,
+  currency,
+  t,
+}: {
+  lead: LeadRow;
+  currency: Currency;
+  t: Translate;
+}) {
+  if (!lead.vehiclePreference && !lead.vehiclePreferenceCategory) {
+    return (
+      <span className="text-[13px] text-ink-400">
+        {lead.leadScore !== null ? t("Not stated") : "\u2014"}
+      </span>
+    );
+  }
+
+  return (
+    <>
+      <p className="text-[13px] text-ink-700">
+        {lead.vehiclePreference ?? lead.vehiclePreferenceCategory}
+      </p>
+      {lead.vehiclePreference && lead.vehiclePreferenceCategory ? (
+        <p className="mt-0.5 text-xs text-ink-400">{lead.vehiclePreferenceCategory}</p>
+      ) : null}
+      {lead.rentalDurationLabel || lead.rentalDurationDays ? (
+        <p className="mt-0.5 text-xs text-ink-500">
+          {lead.rentalDurationLabel ??
+            `${lead.rentalDurationDays} ${t(lead.rentalDurationDays === 1 ? "day" : "days")}`}
+        </p>
+      ) : null}
+      {lead.estimatedBudgetAmount !== null ? (
+        <p className="mt-0.5 text-xs font-medium text-ink-700">
+          {formatAmount(lead.estimatedBudgetAmount, currency)}
+          {lead.estimatedBudgetPeriod === "per_day" ? ` / ${t("day")}` : ""}
+        </p>
+      ) : null}
+    </>
+  );
+}
+
+/** What the model made of the lead. Stacks on narrow screens, splits on wide. */
+function LeadInsight({ lead, t }: { lead: LeadRow; t: Translate }) {
+  if (lead.leadScore === null) {
+    return (
+      <p className="rounded-xl bg-canvas px-3.5 py-2.5 text-xs text-ink-500">
+        {t("Not qualified yet. Run the model to score this inquiry and get a suggested next step.")}
+      </p>
+    );
+  }
+
+  return (
+    <div className="grid gap-3 rounded-xl bg-canvas p-3.5 lg:grid-cols-5 lg:gap-5">
+      <div className="lg:col-span-3">
+        <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-400">
+          <IconSparkles size={13} stroke={1.8} />
+          {t("AI summary")}
+        </p>
+        <p className="mt-1.5 text-[13px] leading-relaxed text-ink-700">{lead.aiSummary}</p>
+
+        {lead.missingInformation.length > 0 ? (
+          <p className="mt-2 flex flex-wrap items-center gap-1.5">
+            <span className="text-[11px] text-ink-400">{t("Still unknown")}:</span>
+            {lead.missingInformation.map((item) => (
+              <span
+                key={item}
+                className="rounded-full bg-white px-2 py-0.5 text-[11px] text-ink-500"
+              >
+                {item}
+              </span>
+            ))}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="lg:col-span-2">
+        <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-400">
+          <IconTargetArrow size={13} stroke={1.8} />
+          {t("Recommended action")}
+        </p>
+        <p className="mt-1.5 text-[13px] font-medium leading-relaxed text-navy-900">
+          {lead.recommendedAction}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The whole lead in one card, for every width below `xl`. Same content as the
+ * table row, ordered by what someone triaging on a phone needs first: who it
+ * is, how hot it is, what they asked, then what to do about it.
+ */
+function LeadCard({ lead, currency, t }: { lead: LeadRow; currency: Currency; t: Translate }) {
+  const qualified = lead.leadScore !== null;
+
+  return (
+    <RecordCard>
+      <RecordHeading
+        title={<LeadContact lead={lead} />}
+        aside={
+          <div className="flex flex-col items-end gap-1.5">
+            <LeadScore score={lead.leadScore} />
+            {lead.priority ? <PriorityPill priority={lead.priority} /> : null}
+          </div>
+        }
+      />
+
+      <div className="rounded-xl bg-canvas p-3">
+        <LeadInquiry lead={lead} t={t} clamp="line-clamp-4" />
+      </div>
+
+      <RecordFields>
+        <RecordField label={t("Urgency")}>
+          <LeadUrgency urgency={lead.urgency} />
+        </RecordField>
+
+        <RecordField label={t("Received")}>
+          <span className="flex items-center gap-1 text-ink-500">
+            <IconClock size={13} stroke={1.6} />
+            {lead.receivedAgo}
+          </span>
+        </RecordField>
+
+        <RecordField label={t("Vehicle Preference")} wide>
+          <LeadPreference lead={lead} currency={currency} t={t} />
+        </RecordField>
+      </RecordFields>
+
+      <LeadInsight lead={lead} t={t} />
+
+      <RecordActions>
+        <LeadStatusPill status={lead.status} />
+        <LeadStatusSelect leadId={lead.id} status={lead.status} />
+        <span className="ml-auto">
+          <QualifyLeadButton
+            leadId={lead.id}
+            qualified={qualified}
+            customer={lead.customerName}
+            currency={currency}
+          />
+        </span>
+      </RecordActions>
+    </RecordCard>
+  );
+}
+
 /**
  * Two rows per lead. The contact and score columns stay scannable, and the AI
  * prose gets the full width underneath where it is actually readable.
@@ -164,62 +398,34 @@ function LeadRows({
   t,
 }: {
   lead: LeadRow;
-  currency: Parameters<typeof formatAmount>[1];
+  currency: Currency;
   t: Translate;
 }) {
   const qualified = lead.leadScore !== null;
-  const intent = intentLabel(lead.intent);
 
   return (
     <>
       <tr className="border-t border-line">
         <Td>
-          <p className="truncate text-[13px] font-semibold text-navy-900">{lead.customerName}</p>
-          {/* `truncate` has to sit on the text itself: as a bare flex child the
-              address keeps its intrinsic width and widens the whole column. */}
-          <p className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-500">
-            <IconMail size={12} stroke={1.6} className="shrink-0" />
-            <span className="min-w-0 truncate">{lead.customerEmail}</span>
-          </p>
-          {lead.customerPhone ? (
-            <p className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-500">
-              <IconPhone size={12} stroke={1.6} />
-              {lead.customerPhone}
-            </p>
-          ) : null}
+          <LeadContact lead={lead} />
         </Td>
 
         <Td className="max-w-xs">
-          <p className="line-clamp-2 text-[13px] text-ink-700">{lead.message}</p>
-
-          {/* Dates the customer chose, kept visually distinct from anything the
-              model produced: a stated date needs no qualification to be acted on. */}
-          {lead.pickupDate ? (
-            <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-navy-900">
-              <IconCalendarEvent size={12} stroke={1.8} className="text-gold-600" />
-              {lead.pickupDate}
-              {lead.returnDate ? ` → ${lead.returnDate}` : ""}
-            </p>
-          ) : null}
-
-          <p className="mt-0.5 text-xs text-ink-400">
-            {intent ? t(intent) : t("Not yet classified")}
-            {lead.vehicle ? ` · ${lead.vehicle}` : ""}
-          </p>
+          <LeadInquiry lead={lead} t={t} clamp="line-clamp-2" />
         </Td>
 
         <Td>
           <LeadScore score={lead.leadScore} />
 
-          {/* Carries the two columns that drop out below xl, so a narrow screen
-              still shows why a lead is ranked where it is. */}
-          <div className="mt-1.5 flex flex-col items-start gap-1 xl:hidden">
+          {/* Carries the two columns that drop out below 2xl, so a laptop still
+              shows why a lead is ranked where it is. */}
+          <div className="mt-1.5 flex flex-col items-start gap-1 2xl:hidden">
             {lead.priority ? <PriorityPill priority={lead.priority} /> : null}
             <LeadUrgency urgency={lead.urgency} />
           </div>
         </Td>
 
-        <Td className="hidden xl:table-cell">
+        <Td className="hidden 2xl:table-cell">
           {lead.priority ? (
             <PriorityPill priority={lead.priority} />
           ) : (
@@ -227,37 +433,12 @@ function LeadRows({
           )}
         </Td>
 
-        <Td className="hidden xl:table-cell">
+        <Td className="hidden 2xl:table-cell">
           <LeadUrgency urgency={lead.urgency} />
         </Td>
 
         <Td className="max-w-56">
-          {lead.vehiclePreference || lead.vehiclePreferenceCategory ? (
-            <>
-              <p className="text-[13px] text-ink-700">
-                {lead.vehiclePreference ?? lead.vehiclePreferenceCategory}
-              </p>
-              {lead.vehiclePreference && lead.vehiclePreferenceCategory ? (
-                <p className="mt-0.5 text-xs text-ink-400">{lead.vehiclePreferenceCategory}</p>
-              ) : null}
-              {lead.rentalDurationLabel || lead.rentalDurationDays ? (
-                <p className="mt-0.5 text-xs text-ink-500">
-                  {lead.rentalDurationLabel ??
-                    `${lead.rentalDurationDays} ${t(lead.rentalDurationDays === 1 ? "day" : "days")}`}
-                </p>
-              ) : null}
-              {lead.estimatedBudgetAmount !== null ? (
-                <p className="mt-0.5 text-xs font-medium text-ink-700">
-                  {formatAmount(lead.estimatedBudgetAmount, currency)}
-                  {lead.estimatedBudgetPeriod === "per_day" ? ` / ${t("day")}` : ""}
-                </p>
-              ) : null}
-            </>
-          ) : (
-            <span className="text-[13px] text-ink-400">
-              {qualified ? t("Not stated") : "\u2014"}
-            </span>
-          )}
+          <LeadPreference lead={lead} currency={currency} t={t} />
         </Td>
 
         <Td>
@@ -284,50 +465,12 @@ function LeadRows({
         </Td>
       </tr>
 
+      {/* The table only draws from xl up, where it always fits its own width —
+          so this cell can lay out normally instead of being pinned to the
+          viewport to escape a horizontal scroll container. */}
       <tr className="border-t border-line/60">
         <td colSpan={columns.length + 1} className="px-4 pb-4 pt-0 sm:px-5">
-          {qualified ? (
-            /* Pinned to the viewport rather than the table: this cell sits inside
-               a horizontal scroll container, so prose would otherwise be laid out
-               at the table's full width and run off-screen. */
-            <div className="grid w-[calc(100vw-5rem)] gap-3 rounded-xl bg-canvas p-3.5 lg:w-auto lg:grid-cols-5 lg:gap-5">
-              <div className="lg:col-span-3">
-                <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-400">
-                  <IconSparkles size={13} stroke={1.8} />
-                  {t("AI summary")}
-                </p>
-                <p className="mt-1.5 text-[13px] leading-relaxed text-ink-700">{lead.aiSummary}</p>
-
-                {lead.missingInformation.length > 0 ? (
-                  <p className="mt-2 flex flex-wrap items-center gap-1.5">
-                    <span className="text-[11px] text-ink-400">{t("Still unknown")}:</span>
-                    {lead.missingInformation.map((item) => (
-                      <span
-                        key={item}
-                        className="rounded-full bg-white px-2 py-0.5 text-[11px] text-ink-500"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </p>
-                ) : null}
-              </div>
-
-              <div className="lg:col-span-2">
-                <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-400">
-                  <IconTargetArrow size={13} stroke={1.8} />
-                  {t("Recommended action")}
-                </p>
-                <p className="mt-1.5 text-[13px] font-medium leading-relaxed text-navy-900">
-                  {lead.recommendedAction}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <p className="rounded-xl bg-canvas px-3.5 py-2.5 text-xs text-ink-500">
-              {t("Not qualified yet. Run the model to score this inquiry and get a suggested next step.")}
-            </p>
-          )}
+          <LeadInsight lead={lead} t={t} />
         </td>
       </tr>
     </>

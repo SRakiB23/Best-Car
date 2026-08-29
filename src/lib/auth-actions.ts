@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { currentViewer, homeFor, safeNext } from "./auth";
+import { demoAccount } from "./demo-accounts";
 import type { FormState } from "./form-state";
 import { createClient } from "./supabase/server";
 
@@ -54,6 +55,35 @@ export async function signIn(_previous: FormState, form: FormData): Promise<Form
 
   revalidatePath("/", "layout");
   redirect(destination);
+}
+
+/**
+ * One-click sign-in for the two published demo accounts. The credentials are on
+ * the page anyway, so nothing is granted here that typing them would not; the
+ * role decides the landing page rather than the `next` param.
+ */
+export async function signInAsDemo(_previous: FormState, form: FormData): Promise<FormState> {
+  const account = demoAccount(field(form, "role"));
+
+  if (!account) {
+    return { status: "error", message: "That demo account is not available." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({
+    email: account.email,
+    password: account.password,
+  });
+
+  if (error) {
+    return {
+      status: "error",
+      message: "The demo account is not set up yet. Run `npm run seed:demo` and try again.",
+    };
+  }
+
+  revalidatePath("/", "layout");
+  redirect(account.destination);
 }
 
 /** A generic message here hides causes that are fixable, like the email quota. */

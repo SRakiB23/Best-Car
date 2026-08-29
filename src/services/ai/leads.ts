@@ -16,6 +16,7 @@ import {
 } from "@/lib/ai/lead-qualification";
 import type { Json } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient, type Db } from "@/lib/supabase/service";
 import { sendQualifiedLeadToZapier } from "@/lib/zapier";
 import { logAiInteraction } from "./interactions";
 
@@ -33,9 +34,22 @@ type LeadRecord = {
   returnDate: string | null;
 };
 
-export async function qualifyLead(leadId: string): Promise<QualifyLeadResult> {
+export type QualifyLeadOptions = {
+  /**
+   * Privileged client for the automatic path, where no staff session exists.
+   * Absent for the Qualify button, which runs as the signed-in staff user and is
+   * checked by the database as before.
+   */
+  db?: Db;
+};
+
+export async function qualifyLead(
+  leadId: string,
+  options: QualifyLeadOptions = {},
+): Promise<QualifyLeadResult> {
   const startedAt = Date.now();
-  const lead = await loadLead(leadId);
+  const db = options.db;
+  const lead = await loadLead(leadId, db);
 
   const generated = await generateStructured({
     system: leadQualificationSystemPrompt,
@@ -58,26 +72,35 @@ export async function qualifyLead(leadId: string): Promise<QualifyLeadResult> {
 
   // Logged before the update so a write failure still leaves a record of the
   // call we paid for, and so the lead row can point at the interaction.
-  const interactionId = await logAiInteraction({
-    feature: leadAiFeature,
-    model: generated.model,
-    request: {
-      leadId: lead.id,
-      message: lead.message,
-      hasPhone: Boolean(lead.customerPhone),
-      vehicleName: lead.vehicleName,
-      source: lead.source,
-    } as Json,
-    response: {
-      raw: generated.data as unknown as Json,
-      grounded: value as unknown as Json,
-      adjustments,
-      usage: generated.usage,
-    } as Json,
-    latencyMs,
-  });
+  const interactionId = await logAiInteraction(
+    {
+      feature: leadAiFeature,
+      model: generated.model,
+      request: {
+        leadId: lead.id,
+        message: lead.message,
+        hasPhone: Boolean(lead.customerPhone),
+        vehicleName: lead.vehicleName,
+        source: lead.source,
+      } as Json,
+      response: {
+        raw: generated.data as unknown as Json,
+        grounded: value as unknown as Json,
+        adjustments,
+        usage: generated.usage,
+      } as Json,
+      latencyMs,
+    },
+    db,
+  );
 
-  const qualifiedAt = await applyQualification(lead.id, value, generated.model, interactionId);
+  const qualifiedAt = await applyQualification(
+    lead.id,
+    value,
+    generated.model,
+    interactionId,
+    db,
+  );
 
   // The result is saved, so the alert runs after the response is sent: a slow or
   // broken webhook must not make a successful qualification look like a failure.
@@ -153,6 +176,46 @@ export async function qualifyLead(leadId: string): Promise<QualifyLeadResult> {
 }
 
 /**
+ * Qualifies a lead the moment it arrives, with no human in the loop. A score that
+ * waits for someone to open the admin panel is not urgency, so the automatic path
+ * exists to make the alert worth reading the second it lands.
+ *
+ * Never throws: it runs after the visitor's response has already been sent, and a
+ * model outage must leave a saved lead looking exactly like a saved lead. The
+ * Qualify button remains as the manual retry.
+ */
+export async function autoQualifyLead(leadId: string) {
+  try {
+    const db = createServiceClient();
+
+    // A retry of the surrounding callback must not pay for a second model call,
+    // and must not reset a score staff may already have acted on.
+    const { data } = await db.from("leads").select("qualified_at").eq("id", leadId).maybeSingle();
+
+    if (data?.qualified_at) {
+      console.log("lead already qualified; skipping auto-qualification", `lead=${leadId}`);
+      return;
+    }
+
+    const result = await qualifyLead(leadId, { db });
+
+    console.log(
+      "auto-qualified lead",
+      `lead=${leadId}`,
+      `score=${result.qualification.leadScore}`,
+      `priority=${result.qualification.priority}`,
+    );
+  } catch (error) {
+    // Logged loudly: the lead is safe, but nobody has been alerted about it.
+    console.error(
+      "auto-qualification failed; lead needs the manual Qualify button",
+      `lead=${leadId}`,
+      error instanceof Error ? error.message : error,
+    );
+  }
+}
+
+/**
  * Only used to build a link for the alert email. Falls back to the dev origin so
  * a missing variable costs a useful link, not the notification.
  */
@@ -160,8 +223,8 @@ function appUrl() {
   return (process.env.APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
 }
 
-async function loadLead(leadId: string): Promise<LeadRecord> {
-  const supabase = await createClient();
+async function loadLead(leadId: string, db?: Db): Promise<LeadRecord> {
+  const supabase = db ?? (await createClient());
 
   const { data, error } = await supabase
     .from("lead_list")
@@ -201,10 +264,15 @@ async function applyQualification(
   value: LeadQualification,
   model: string,
   interactionId: string | null,
+  db?: Db,
 ) {
-  const supabase = await createClient();
+  const supabase = db ?? (await createClient());
 
-  const { error } = await supabase.rpc("apply_lead_qualification", {
+  // The internal variant skips the staff check and is executable by the secret
+  // key alone. Staff keep going through the guarded entry point.
+  const fn = db ? "apply_lead_qualification_internal" : "apply_lead_qualification";
+
+  const { error } = await supabase.rpc(fn, {
     p_lead_id: leadId,
     p_result: value as unknown as Json,
     p_model: model,

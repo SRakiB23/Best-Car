@@ -111,8 +111,9 @@ export function InquiryForm({
       <div className="mt-4">
         <Field
           name="phone"
-          label="Phone (optional)"
+          label="Phone"
           type="tel"
+          required
           placeholder="+880 17 1122 3344"
           autoComplete="tel"
           maxLength={32}

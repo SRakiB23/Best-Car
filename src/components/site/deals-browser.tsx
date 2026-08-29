@@ -51,7 +51,7 @@ export function DealsBrowser({ vehicles }: { vehicles: Vehicle[] }) {
           No cars in this category right now.
         </p>
       ) : (
-        <div className="mt-8 grid justify-items-center gap-6 sm:mt-10 sm:grid-cols-2 sm:gap-8 lg:grid-cols-4">
+        <div className="mt-8 grid justify-items-center gap-6 sm:mt-10 sm:grid-cols-2 sm:gap-8 lg:grid-cols-3 xl:grid-cols-4">
           {shown.map((vehicle) => (
             <VehicleCard key={vehicle.id} vehicle={vehicle} />
           ))}
@@ -63,12 +63,12 @@ export function DealsBrowser({ vehicles }: { vehicles: Vehicle[] }) {
           <button
             type="button"
             onClick={() => setVisible((count) => count + pageSize)}
-            className={buttonClass("outline", "md", "bg-white px-6")}
+            className={buttonClass("outline", "md", "h-11 bg-white px-6")}
           >
             Show more car
           </button>
         ) : (
-          <Link href="/cars" className={buttonClass("outline", "md", "bg-white px-6")}>
+          <Link href="/cars" className={buttonClass("outline", "md", "h-11 bg-white px-6")}>
             Browse all cars
           </Link>
         )}

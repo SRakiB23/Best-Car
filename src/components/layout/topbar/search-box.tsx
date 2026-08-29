@@ -33,7 +33,12 @@ export function SearchBox() {
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key.toLowerCase() === "k" && (event.metaKey || event.ctrlKey)) {
+      // Modifier first, and `key` is optional: autofill and IME-generated events
+      // reach this listener without one, and reading `.toLowerCase()` on that
+      // threw for every keystroke in the document.
+      if (!event.metaKey && !event.ctrlKey) return;
+
+      if (event.key?.toLowerCase() === "k") {
         event.preventDefault();
         input.current?.focus();
       }

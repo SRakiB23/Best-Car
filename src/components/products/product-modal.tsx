@@ -127,7 +127,7 @@ export function ProductModal({
             </Field>
           </div>
 
-          <div className="flex items-center justify-between gap-3 border-t border-line px-5 py-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-5 py-4">
             <FormMessage state={state} />
 
             <div className="ml-auto flex shrink-0 gap-2">

@@ -31,15 +31,20 @@ import { formatAmount } from "@/lib/format";
 import { pageCount, readListParams } from "@/lib/list-params";
 import type { LeadRow, LeadStatus } from "@/lib/types";
 
+/**
+ * `className` hides the two columns the score already implies, so the table fits
+ * a laptop without sideways scrolling. Priority and urgency stay in the row that
+ * expands underneath, so nothing is actually lost at narrow widths.
+ */
 const columns = [
-  { label: "Customer", sortKey: "customer" },
-  { label: "Inquiry", sortKey: null },
-  { label: "Lead Score", sortKey: "score" },
-  { label: "Priority", sortKey: null },
-  { label: "Urgency", sortKey: "urgency" },
-  { label: "Vehicle Preference", sortKey: null },
-  { label: "Stage", sortKey: "status" },
-  { label: "Received", sortKey: "date" },
+  { label: "Customer", sortKey: "customer", className: "" },
+  { label: "Inquiry", sortKey: null, className: "" },
+  { label: "Lead Score", sortKey: "score", className: "" },
+  { label: "Priority", sortKey: null, className: "hidden xl:table-cell" },
+  { label: "Urgency", sortKey: "urgency", className: "hidden xl:table-cell" },
+  { label: "Vehicle Preference", sortKey: null, className: "" },
+  { label: "Stage", sortKey: "status", className: "" },
+  { label: "Received", sortKey: "date", className: "" },
 ] as const;
 
 const statuses: LeadStatus[] = ["new", "qualified", "contacted", "closed"];
@@ -108,10 +113,10 @@ export default async function LeadsPage({
           />
         ) : (
           <>
-            <Table className="min-w-270">
+            <Table className="min-w-[880px]">
               <TableHeadRow>
                 {columns.map((column) => (
-                  <Th key={column.label}>
+                  <Th key={column.label} className={column.className}>
                     {column.sortKey ? (
                       <SortLink
                         label={t(column.label)}
@@ -170,9 +175,11 @@ function LeadRows({
       <tr className="border-t border-line">
         <Td>
           <p className="truncate text-[13px] font-semibold text-navy-900">{lead.customerName}</p>
-          <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-ink-500">
-            <IconMail size={12} stroke={1.6} />
-            {lead.customerEmail}
+          {/* `truncate` has to sit on the text itself: as a bare flex child the
+              address keeps its intrinsic width and widens the whole column. */}
+          <p className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-500">
+            <IconMail size={12} stroke={1.6} className="shrink-0" />
+            <span className="min-w-0 truncate">{lead.customerEmail}</span>
           </p>
           {lead.customerPhone ? (
             <p className="mt-0.5 flex items-center gap-1.5 text-xs text-ink-500">
@@ -203,9 +210,16 @@ function LeadRows({
 
         <Td>
           <LeadScore score={lead.leadScore} />
+
+          {/* Carries the two columns that drop out below xl, so a narrow screen
+              still shows why a lead is ranked where it is. */}
+          <div className="mt-1.5 flex flex-col items-start gap-1 xl:hidden">
+            {lead.priority ? <PriorityPill priority={lead.priority} /> : null}
+            <LeadUrgency urgency={lead.urgency} />
+          </div>
         </Td>
 
-        <Td>
+        <Td className="hidden xl:table-cell">
           {lead.priority ? (
             <PriorityPill priority={lead.priority} />
           ) : (
@@ -213,7 +227,7 @@ function LeadRows({
           )}
         </Td>
 
-        <Td>
+        <Td className="hidden xl:table-cell">
           <LeadUrgency urgency={lead.urgency} />
         </Td>
 
@@ -273,7 +287,10 @@ function LeadRows({
       <tr className="border-t border-line/60">
         <td colSpan={columns.length + 1} className="px-4 pb-4 pt-0 sm:px-5">
           {qualified ? (
-            <div className="grid gap-3 rounded-xl bg-canvas p-3.5 lg:grid-cols-5 lg:gap-5">
+            /* Pinned to the viewport rather than the table: this cell sits inside
+               a horizontal scroll container, so prose would otherwise be laid out
+               at the table's full width and run off-screen. */
+            <div className="grid w-[calc(100vw-5rem)] gap-3 rounded-xl bg-canvas p-3.5 lg:w-auto lg:grid-cols-5 lg:gap-5">
               <div className="lg:col-span-3">
                 <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink-400">
                   <IconSparkles size={13} stroke={1.8} />

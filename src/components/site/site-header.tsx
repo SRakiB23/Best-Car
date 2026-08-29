@@ -136,7 +136,7 @@ export function SiteHeader({ viewer }: { viewer?: HeaderViewer | null }) {
               >
                 {viewer.isStaff ? "Dashboard" : "My bookings"}
               </Link>
-              <SignOutButton className={buttonClass("gold", "md", "px-6 font-semibold")}>
+              <SignOutButton className={buttonClass("gold", "md", "h-10 px-6 font-semibold")}>
                 Sign out
               </SignOutButton>
             </>
@@ -148,7 +148,7 @@ export function SiteHeader({ viewer }: { viewer?: HeaderViewer | null }) {
               >
                 Register
               </Link>
-              <Link href="/login" className={buttonClass("gold", "md", "px-6 font-semibold")}>
+              <Link href="/login" className={buttonClass("gold", "md", "h-10 px-6 font-semibold")}>
                 Log In
               </Link>
             </>
@@ -160,7 +160,7 @@ export function SiteHeader({ viewer }: { viewer?: HeaderViewer | null }) {
           aria-label="Toggle menu"
           aria-expanded={open}
           onClick={() => setOpen((value) => !value)}
-          className="grid size-9 place-items-center rounded-lg border border-white/15 text-white lg:hidden"
+          className="grid size-10 place-items-center rounded-lg border border-white/15 text-white lg:hidden"
         >
           {open ? <IconX size={18} /> : <IconMenu2 size={18} />}
         </button>
@@ -205,7 +205,7 @@ export function SiteHeader({ viewer }: { viewer?: HeaderViewer | null }) {
                 >
                   {viewer.isStaff ? "Dashboard" : "My bookings"}
                 </Link>
-                <SignOutButton className={buttonClass("gold", "md", "flex-1 font-semibold")}>
+                <SignOutButton className={buttonClass("gold", "md", "h-11 flex-1 font-semibold")}>
                   Sign out
                 </SignOutButton>
               </>
@@ -217,7 +217,7 @@ export function SiteHeader({ viewer }: { viewer?: HeaderViewer | null }) {
                 >
                   Register
                 </Link>
-                <Link href="/login" className={buttonClass("gold", "md", "flex-1 font-semibold")}>
+                <Link href="/login" className={buttonClass("gold", "md", "h-11 flex-1 font-semibold")}>
                   Log In
                 </Link>
               </>

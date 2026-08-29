@@ -111,7 +111,14 @@ export function BookingFlow({
             >
               {index + 1}
             </span>
-            <span className={cn("truncate", index <= step ? "text-ink-900" : "text-ink-400")}>
+            {/* Hidden on phones: three labels share ~66px each there, so all of
+                them truncate to nothing useful. The numbers read fine alone. */}
+            <span
+              className={cn(
+                "hidden truncate sm:inline",
+                index <= step ? "text-ink-900" : "text-ink-400",
+              )}
+            >
               {label}
             </span>
           </li>
@@ -121,7 +128,10 @@ export function BookingFlow({
       <form action={checkAction} className="mt-6 flex flex-col gap-4">
         <input type="hidden" name="vehicleId" value={vehicle.id} />
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        {/* Back to one column at lg: this panel is the narrow side of the car
+            page's 1.4fr/1fr split, so it is tighter there than it was at sm, and
+            a native date input has an intrinsic minimum width. */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
           <Field label="Pick-up date" error={errors.startDate}>
             <input
               type="date"
@@ -206,7 +216,7 @@ export function BookingFlow({
                 />
               </Field>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
                 <Field label="Email" error={bookingErrors.email}>
                   <input
                     type="email"

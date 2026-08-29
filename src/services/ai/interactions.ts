@@ -2,6 +2,7 @@ import "server-only";
 
 import type { Json } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
+import type { Db } from "@/lib/supabase/service";
 
 /** Mirrors the feature whitelist inside log_ai_interaction. */
 export type AiFeature = "vehicle_recommendation" | "lead_qualification";
@@ -20,9 +21,13 @@ export type AiInteraction = {
  * Best-effort audit write. A failure here must never turn a good recommendation
  * into an error for the customer, so it is logged and swallowed.
  */
-export async function logAiInteraction(interaction: AiInteraction): Promise<string | null> {
+export async function logAiInteraction(
+  interaction: AiInteraction,
+  /** Passed by the automatic path, which has no user session to log under. */
+  db?: Db,
+): Promise<string | null> {
   try {
-    const supabase = await createClient();
+    const supabase = db ?? (await createClient());
 
     const { data, error } = await supabase.rpc("log_ai_interaction", {
       p_feature: interaction.feature,

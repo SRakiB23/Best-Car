@@ -16,8 +16,8 @@ export function Card({ className, ...props }: ComponentProps<"section">) {
 
 export function CardHeader({ title, action }: { title: ReactNode; action?: ReactNode }) {
   return (
-    <header className="flex items-center justify-between gap-3 border-b border-line px-4 py-3 sm:px-5 sm:py-[15px]">
-      <h2 className="text-[15px] font-semibold text-ink-900">{title}</h2>
+    <header className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-4 py-3 sm:px-5 sm:py-[15px]">
+      <h2 className="min-w-0 text-[15px] font-semibold text-ink-900">{title}</h2>
       {action}
     </header>
   );

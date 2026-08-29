@@ -73,6 +73,9 @@ export function SalesByCountriesCard({
                   )}
                   onMouseEnter={() => record && setHovered(record)}
                   onMouseLeave={() => setHovered(null)}
+                  /* Tapping counts too: on a touch screen hover never fires, so
+                     the figures were unreachable rather than merely awkward. */
+                  onClick={() => record && setHovered(record)}
                 />
               );
             })}

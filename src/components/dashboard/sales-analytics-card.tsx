@@ -59,7 +59,7 @@ export function SalesAnalyticsCard({
       />
 
       <CardBody>
-        <div className="h-[260px] w-full">
+        <div className="h-[200px] w-full sm:h-[260px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={points} margin={{ top: 8, right: 8, bottom: 0, left: -8 }}>
               <defs>
@@ -71,7 +71,9 @@ export function SalesAnalyticsCard({
 
               <CartesianGrid stroke="var(--color-line)" vertical={false} />
 
-              <XAxis dataKey="month" dy={8} {...axisStyle} />
+              {/* Twelve month labels do not fit a phone; keeping the ends and
+                  dropping the middle beats twelve overlapping ticks. */}
+              <XAxis dataKey="month" dy={8} interval="preserveStartEnd" {...axisStyle} />
               <YAxis
                 domain={[ticks[0], ticks[ticks.length - 1]]}
                 ticks={ticks}

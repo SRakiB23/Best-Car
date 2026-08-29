@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_interactions: {
+        Row: {
+          created_at: string
+          error: string | null
+          feature: string
+          id: string
+          latency_ms: number | null
+          model: string
+          request: Json
+          response: Json | null
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          feature: string
+          id?: string
+          latency_ms?: number | null
+          model: string
+          request: Json
+          response?: Json | null
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          feature?: string
+          id?: string
+          latency_ms?: number | null
+          model?: string
+          request?: Json
+          response?: Json | null
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       bookings: {
         Row: {
           created_at: string
@@ -224,29 +263,41 @@ export type Database = {
         Row: {
           category: string
           created_at: string
+          fuel_type: string
           id: string
           image_url: string
+          luggage_capacity: number
           name: string
           price: number
+          seats: number
           stock: number
+          transmission: string
         }
         Insert: {
           category?: string
           created_at?: string
+          fuel_type?: string
           id?: string
           image_url?: string
+          luggage_capacity?: number
           name: string
           price: number
+          seats?: number
           stock?: number
+          transmission?: string
         }
         Update: {
           category?: string
           created_at?: string
+          fuel_type?: string
           id?: string
           image_url?: string
+          luggage_capacity?: number
           name?: string
           price?: number
+          seats?: number
           stock?: number
+          transmission?: string
         }
         Relationships: []
       }
@@ -447,6 +498,18 @@ export type Database = {
         }[]
       }
       is_staff: { Args: never; Returns: boolean }
+      log_ai_interaction: {
+        Args: {
+          p_error?: string
+          p_feature: string
+          p_latency_ms?: number
+          p_model: string
+          p_request: Json
+          p_response?: Json
+          p_status?: string
+        }
+        Returns: string
+      }
       sales_analytics: {
         Args: { target_year: number }
         Returns: {
@@ -466,6 +529,30 @@ export type Database = {
         Returns: {
           end_date: string
           start_date: string
+        }[]
+      }
+      vehicle_candidates: {
+        Args: {
+          p_category?: string
+          p_end?: string
+          p_limit?: number
+          p_max_price_per_day?: number
+          p_min_luggage?: number
+          p_min_seats?: number
+          p_start?: string
+          p_transmission?: string
+        }
+        Returns: {
+          available: boolean
+          category: string
+          fuel_type: string
+          id: string
+          image_url: string
+          luggage_capacity: number
+          name: string
+          price_per_day: number
+          seats: number
+          transmission: string
         }[]
       }
       vehicle_is_available: {

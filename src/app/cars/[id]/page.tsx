@@ -1,3 +1,4 @@
+import { ViewTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -51,20 +52,23 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
 
         <div className="mt-6 grid items-start gap-8 lg:grid-cols-[1.4fr_1fr] lg:gap-12">
           <div>
-            <div className="relative grid aspect-16/10 place-items-center overflow-hidden rounded-3xl bg-white">
-              {vehicle.imageUrl ? (
-                <Image
-                  src={vehicle.imageUrl}
-                  alt={vehicle.name}
-                  fill
-                  priority
-                  sizes="(min-width: 1024px) 60vw, 100vw"
-                  className="object-cover"
-                />
-              ) : (
-                <IconCar size={64} stroke={1.2} className="text-ink-400" />
-              )}
-            </div>
+            {/* Same name as the grid card, so the photo travels between routes. */}
+            <ViewTransition name={`vehicle-${vehicle.id}`} share="morph" default="none">
+              <div className="relative grid aspect-16/10 place-items-center overflow-hidden rounded-3xl bg-white">
+                {vehicle.imageUrl ? (
+                  <Image
+                    src={vehicle.imageUrl}
+                    alt={vehicle.name}
+                    fill
+                    priority
+                    sizes="(min-width: 1024px) 60vw, 100vw"
+                    className="object-cover"
+                  />
+                ) : (
+                  <IconCar size={64} stroke={1.2} className="text-ink-400" />
+                )}
+              </div>
+            </ViewTransition>
 
             <div className="mt-6 rounded-2xl bg-white p-6 shadow-card lg:p-8">
               <span className="rounded-full bg-gold-100 px-3 py-1 text-xs font-semibold text-gold-600">

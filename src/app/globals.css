@@ -59,6 +59,161 @@
   body {
     @apply bg-canvas text-ink-700 font-sans text-sm antialiased;
   }
+
+  /* Header anchors glide instead of jumping. Gated so it never overrides a
+     reduced-motion preference, and offset to clear the sticky header. */
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  [id="home"],
+  [id="how-it-works"],
+  [id="why-choose-us"],
+  [id="testimonial"],
+  [id="booking"] {
+    scroll-margin-top: 5.5rem;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   View transitions — the car photo morphs from grid card to detail hero.
+   --------------------------------------------------------------------------- */
+
+/* The transition overlay swallows clicks; let them reach the live page. */
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-group(.morph) {
+  animation-duration: 420ms;
+}
+
+/* A touch of blur hides pixel interpolation while the image resizes. */
+::view-transition-image-pair(.morph) {
+  animation-name: morph-blur;
+}
+
+@keyframes morph-blur {
+  30% {
+    filter: blur(3px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
+}
+
+/* Two quick beats then a rest, so the launcher reads as a pulse rather than a throb. */
+@keyframes heartbeat {
+  0%,
+  60%,
+  100% {
+    transform: scale(1);
+  }
+  15% {
+    transform: scale(1.14);
+  }
+  30% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.09);
+  }
+}
+
+@keyframes halo {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  70%,
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
+  }
+}
+
+/* Opacity only. The shadow itself is static, so this composites instead of
+   forcing a repaint on every frame of an animation that never stops. */
+@keyframes glow {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Road rushing past a car that stays put. */
+@keyframes road {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: -48px 0;
+  }
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(-3px) rotate(1deg);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(200%);
+  }
+}
+
+@utility animate-heartbeat {
+  animation: heartbeat 2.2s ease-in-out infinite;
+}
+
+@utility animate-halo {
+  animation: halo 2.2s ease-out infinite;
+}
+
+@utility animate-glow {
+  animation: glow 2.2s ease-in-out infinite;
+}
+
+@utility animate-road {
+  animation: road 0.6s linear infinite;
+}
+
+@utility animate-bob {
+  animation: bob 1.1s ease-in-out infinite;
+}
+
+@utility animate-shimmer {
+  animation: shimmer 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-heartbeat,
+  .animate-halo,
+  .animate-glow,
+  .animate-road,
+  .animate-bob,
+  .animate-shimmer {
+    animation: none;
+  }
 }
 
 @utility scrollbar-none {

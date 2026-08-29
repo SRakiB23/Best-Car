@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import Link from "next/link";
 
 import { Field, controlClass } from "@/components/ui/field";
 import { FormMessage, SubmitButton } from "@/components/ui/form-parts";
@@ -25,15 +26,24 @@ export function LoginForm({ next }: { next: string }) {
         />
       </Field>
 
-      <Field label="Password" error={state.errors?.password}>
-        <input
-          className={controlClass}
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          placeholder="••••••••"
-        />
-      </Field>
+      <div>
+        <Field label="Password" error={state.errors?.password}>
+          <input
+            className={controlClass}
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            placeholder="••••••••"
+          />
+        </Field>
+
+        <Link
+          href="/forgot-password"
+          className="mt-1.5 inline-block text-xs font-medium text-brand-500 hover:text-brand-600"
+        >
+          Forgot password?
+        </Link>
+      </div>
 
       <FormMessage state={state} />
 

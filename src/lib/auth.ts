@@ -2,11 +2,11 @@ import "server-only";
 
 import { redirect } from "next/navigation";
 
-import { adminRoot } from "./nav";
+import { adminRoot, customerHome } from "./nav";
 import { createClient } from "./supabase/server";
 
 export const accountRoot = "/account";
-export const customerHome = "/account/bookings";
+export { customerHome };
 
 export async function currentUser() {
   const supabase = await createClient();

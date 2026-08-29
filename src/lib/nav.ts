@@ -12,6 +12,14 @@ const icons = "/sidebar-icons";
 
 export const adminRoot = "/admin";
 
+/**
+ * Where a signed-in customer lands: the storefront, not their booking list. A
+ * customer signs in to browse and book far more often than to review what they
+ * already have. Lives here rather than in `auth.ts` because the sign-in page is
+ * a client component and must not pull in a `server-only` module.
+ */
+export const customerHome = "/";
+
 export type NavIconSource = string | Icon;
 
 /**

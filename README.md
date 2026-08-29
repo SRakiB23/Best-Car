@@ -6,11 +6,9 @@ qualification, and automated high-priority lead notifications.
 
 🚀 Live Demo
 
-Customer: ADD_CUSTOMER_URL
+Customer: https://best-cars1.netlify.app
 
-Admin: ADD_ADMIN_URL
-
-Repository: ADD_GITHUB_URL
+Admin: https://best-cars1.netlify.app/admin
 
 AI / Automation Demo: ADD_VIDEO_URL
 
@@ -38,6 +36,8 @@ Date-based availability checking
 Booking and cancellation flow
 
 Customer account and booking history
+
+Password reset by emailed one-time link, sent through Resend
 
 AI vehicle advisor
 
@@ -203,6 +203,26 @@ PostgreSQL date-overlap constraint to prevent double booking
 AI interaction audit logging
 
 Model output grounding and validation
+
+Password reset that resists account enumeration and inbox flooding
+
+🔑 Password Reset
+
+Recovery tokens are minted with the Supabase admin API but never sent by
+Supabase. The application builds its own link and delivers it through
+Resend, so the template lives in code review and delivery is not capped
+by Supabase's built-in mailer.
+
+Request → emailed link → /auth/confirm → new password → other sessions
+signed out
+
+Demo note: this deployment sends from Resend's shared onboarding sender,
+which only delivers to the Resend account owner until a domain is
+verified. The flow is complete and works end to end for a real inbox;
+the demo accounts above are not real mailboxes, so reset emails for them
+cannot be delivered in the hosted demo. Verify a domain at
+resend.com/domains and set RESEND_FROM_EMAIL to lift this. Set APP_URL
+in every deployed environment: it builds the recovery link.
 
 🧠 AI Design Principle
 

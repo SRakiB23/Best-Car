@@ -113,6 +113,13 @@ export type Database = {
             foreignKeyName: "bookings_vehicle_id_fkey"
             columns: ["vehicle_id"]
             isOneToOne: false
+            referencedRelation: "lead_list"
+            referencedColumns: ["vehicle_id"]
+          },
+          {
+            foreignKeyName: "bookings_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
             referencedRelation: "product_list"
             referencedColumns: ["id"]
           },
@@ -139,6 +146,128 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      leads: {
+        Row: {
+          ai_interaction_id: string | null
+          ai_summary: string | null
+          created_at: string
+          customer_email: string
+          customer_name: string
+          customer_phone: string
+          estimated_budget_amount: number | null
+          estimated_budget_period: string | null
+          id: string
+          intent: string | null
+          lead_score: number | null
+          message: string
+          missing_information: Json
+          pickup_date: string | null
+          priority: Database["public"]["Enums"]["lead_priority"] | null
+          qualification_model: string | null
+          qualified_at: string | null
+          recommended_action: string | null
+          rental_duration_days: number | null
+          rental_duration_label: string | null
+          return_date: string | null
+          source: string
+          status: Database["public"]["Enums"]["lead_status"]
+          urgency: string | null
+          user_id: string | null
+          vehicle_id: string | null
+          vehicle_preference: string | null
+          vehicle_preference_category: string | null
+        }
+        Insert: {
+          ai_interaction_id?: string | null
+          ai_summary?: string | null
+          created_at?: string
+          customer_email: string
+          customer_name: string
+          customer_phone?: string
+          estimated_budget_amount?: number | null
+          estimated_budget_period?: string | null
+          id?: string
+          intent?: string | null
+          lead_score?: number | null
+          message: string
+          missing_information?: Json
+          pickup_date?: string | null
+          priority?: Database["public"]["Enums"]["lead_priority"] | null
+          qualification_model?: string | null
+          qualified_at?: string | null
+          recommended_action?: string | null
+          rental_duration_days?: number | null
+          rental_duration_label?: string | null
+          return_date?: string | null
+          source?: string
+          status?: Database["public"]["Enums"]["lead_status"]
+          urgency?: string | null
+          user_id?: string | null
+          vehicle_id?: string | null
+          vehicle_preference?: string | null
+          vehicle_preference_category?: string | null
+        }
+        Update: {
+          ai_interaction_id?: string | null
+          ai_summary?: string | null
+          created_at?: string
+          customer_email?: string
+          customer_name?: string
+          customer_phone?: string
+          estimated_budget_amount?: number | null
+          estimated_budget_period?: string | null
+          id?: string
+          intent?: string | null
+          lead_score?: number | null
+          message?: string
+          missing_information?: Json
+          pickup_date?: string | null
+          priority?: Database["public"]["Enums"]["lead_priority"] | null
+          qualification_model?: string | null
+          qualified_at?: string | null
+          recommended_action?: string | null
+          rental_duration_days?: number | null
+          rental_duration_label?: string | null
+          return_date?: string | null
+          source?: string
+          status?: Database["public"]["Enums"]["lead_status"]
+          urgency?: string | null
+          user_id?: string | null
+          vehicle_id?: string | null
+          vehicle_preference?: string | null
+          vehicle_preference_category?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_ai_interaction_id_fkey"
+            columns: ["ai_interaction_id"]
+            isOneToOne: false
+            referencedRelation: "ai_interactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "lead_list"
+            referencedColumns: ["vehicle_id"]
+          },
+          {
+            foreignKeyName: "leads_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "product_list"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
@@ -235,6 +364,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "countries"
             referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "lead_list"
+            referencedColumns: ["vehicle_id"]
           },
           {
             foreignKeyName: "orders_product_id_fkey"
@@ -412,6 +548,41 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_list: {
+        Row: {
+          ai_summary: string | null
+          created_at: string | null
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          estimated_budget_amount: number | null
+          estimated_budget_period: string | null
+          id: string | null
+          intent: string | null
+          lead_score: number | null
+          message: string | null
+          missing_information: Json | null
+          pickup_date: string | null
+          priority: Database["public"]["Enums"]["lead_priority"] | null
+          qualification_model: string | null
+          qualified_at: string | null
+          recommended_action: string | null
+          rental_duration_days: number | null
+          rental_duration_label: string | null
+          return_date: string | null
+          source: string | null
+          status: Database["public"]["Enums"]["lead_status"] | null
+          urgency: string | null
+          user_id: string | null
+          vehicle_category: string | null
+          vehicle_id: string | null
+          vehicle_image: string | null
+          vehicle_name: string | null
+          vehicle_preference: string | null
+          vehicle_preference_category: string | null
+        }
+        Relationships: []
+      }
       order_list: {
         Row: {
           amount: number | null
@@ -453,6 +624,15 @@ export type Database = {
       }
     }
     Functions: {
+      apply_lead_qualification: {
+        Args: {
+          p_interaction_id?: string
+          p_lead_id: string
+          p_model: string
+          p_result: Json
+        }
+        Returns: Json
+      }
       best_sellers: {
         Args: { max_rows: number; window_days: number }
         Returns: {
@@ -487,6 +667,19 @@ export type Database = {
         }
         Returns: Json
       }
+      create_lead: {
+        Args: {
+          p_email: string
+          p_message: string
+          p_name: string
+          p_phone?: string
+          p_pickup_date?: string
+          p_return_date?: string
+          p_source?: string
+          p_vehicle_id?: string
+        }
+        Returns: Json
+      }
       earning_summary: {
         Args: { window_days: number }
         Returns: {
@@ -498,6 +691,7 @@ export type Database = {
         }[]
       }
       is_staff: { Args: never; Returns: boolean }
+      lead_payload: { Args: { p_lead_id: string }; Returns: Json }
       log_ai_interaction: {
         Args: {
           p_error?: string
@@ -523,6 +717,10 @@ export type Database = {
           direction: string
           percent: number
         }[]
+      }
+      set_lead_status: {
+        Args: { p_lead_id: string; p_status: string }
+        Returns: Json
       }
       vehicle_booked_ranges: {
         Args: { p_vehicle_id: string }
@@ -562,6 +760,8 @@ export type Database = {
     }
     Enums: {
       booking_status: "confirmed" | "cancelled"
+      lead_priority: "low" | "medium" | "high"
+      lead_status: "new" | "qualified" | "contacted" | "closed"
       order_status: "success" | "pending" | "cancelled"
     }
     CompositeTypes: {
@@ -691,6 +891,8 @@ export const Constants = {
   public: {
     Enums: {
       booking_status: ["confirmed", "cancelled"],
+      lead_priority: ["low", "medium", "high"],
+      lead_status: ["new", "qualified", "contacted", "closed"],
       order_status: ["success", "pending", "cancelled"],
     },
   },

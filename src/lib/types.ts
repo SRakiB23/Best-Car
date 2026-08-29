@@ -128,6 +128,40 @@ export type BookingRow = {
   image?: string;
 };
 
+export type LeadStatus = "new" | "qualified" | "contacted" | "closed";
+
+export type LeadPriority = "low" | "medium" | "high";
+
+/** Everything from `leadScore` down is null until the model has been run. */
+export type LeadRow = {
+  id: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  message: string;
+  source: string;
+  status: LeadStatus;
+  receivedAgo: string;
+  vehicle?: string;
+  /** Dates the customer picked in the form, not the model's reading of them. */
+  pickupDate: string | null;
+  returnDate: string | null;
+  leadScore: number | null;
+  priority: LeadPriority | null;
+  intent: string | null;
+  estimatedBudgetAmount: number | null;
+  estimatedBudgetPeriod: string | null;
+  rentalDurationDays: number | null;
+  rentalDurationLabel: string | null;
+  vehiclePreference: string | null;
+  vehiclePreferenceCategory: string | null;
+  urgency: string | null;
+  aiSummary: string | null;
+  recommendedAction: string | null;
+  missingInformation: string[];
+  qualifiedAt: string | null;
+};
+
 export type ListResult<T> = {
   rows: T[];
   total: number;

@@ -8,6 +8,9 @@ import type {
   BestSeller,
   BookingRow,
   BookingStatus,
+  LeadPriority,
+  LeadRow,
+  LeadStatus,
   ListResult,
   OrderRow,
   PaymentStatus,
@@ -178,10 +181,12 @@ export async function getMessages(): Promise<Message[]> {
 export const productSortKeys = ["name", "category", "price", "stock", "sales"] as const;
 export const orderSortKeys = ["product", "payment", "status", "amount", "date"] as const;
 export const bookingSortKeys = ["vehicle", "customer", "pickup", "status", "amount", "date"] as const;
+export const leadSortKeys = ["customer", "score", "urgency", "status", "date"] as const;
 
 export type ProductSortKey = (typeof productSortKeys)[number];
 export type OrderSortKey = (typeof orderSortKeys)[number];
 export type BookingSortKey = (typeof bookingSortKeys)[number];
+export type LeadSortKey = (typeof leadSortKeys)[number];
 
 const productColumns: Record<ProductSortKey, string> = {
   name: "name",
@@ -207,6 +212,90 @@ const bookingColumns: Record<BookingSortKey, string> = {
   amount: "total_amount",
   date: "created_at",
 };
+
+const leadColumns: Record<LeadSortKey, string> = {
+  customer: "customer_name",
+  score: "lead_score",
+  urgency: "urgency",
+  status: "status",
+  date: "created_at",
+};
+
+export async function getLeads(
+  params: ListParams<LeadSortKey> & { status: LeadStatus | "" },
+): Promise<ListResult<LeadRow>> {
+  const supabase = await createClient();
+  const { from, to } = pageRange(params.page);
+
+  let query = supabase
+    .from("lead_list")
+    .select(
+      "id, customer_name, customer_email, customer_phone, message, source, status, created_at, lead_score, priority, intent, estimated_budget_amount, estimated_budget_period, rental_duration_days, rental_duration_label, vehicle_preference, vehicle_preference_category, urgency, ai_summary, recommended_action, missing_information, qualified_at, vehicle_name, pickup_date, return_date",
+      { count: "exact" },
+    );
+
+  const term = likeTerm(params.q);
+  if (term) {
+    query = query.or(
+      `customer_name.ilike.%${term}%,customer_email.ilike.%${term}%,message.ilike.%${term}%`,
+    );
+  }
+  if (params.status) query = query.eq("status", params.status);
+
+  // Unscored leads sort last on every direction: an unqualified lead is not the
+  // lowest-scoring one, we simply do not know yet.
+  const result = await query
+    .order(leadColumns[params.sort], { ascending: params.dir === "asc", nullsFirst: false })
+    .range(from, to);
+
+  const rows = unwrap(result, "leads") ?? [];
+
+  return {
+    rows: rows.map((row) => ({
+      id: row.id!,
+      customerName: row.customer_name!,
+      customerEmail: row.customer_email!,
+      customerPhone: row.customer_phone!,
+      message: row.message!,
+      source: row.source!,
+      status: row.status! as LeadStatus,
+      receivedAgo: relativeTime(row.created_at!),
+      vehicle: row.vehicle_name || undefined,
+      pickupDate: row.pickup_date,
+      returnDate: row.return_date,
+      leadScore: row.lead_score,
+      priority: row.priority as LeadPriority | null,
+      intent: row.intent,
+      estimatedBudgetAmount: row.estimated_budget_amount === null ? null : Number(row.estimated_budget_amount),
+      estimatedBudgetPeriod: row.estimated_budget_period,
+      rentalDurationDays: row.rental_duration_days,
+      rentalDurationLabel: row.rental_duration_label,
+      vehiclePreference: row.vehicle_preference,
+      vehiclePreferenceCategory: row.vehicle_preference_category,
+      urgency: row.urgency,
+      aiSummary: row.ai_summary,
+      recommendedAction: row.recommended_action,
+      missingInformation: Array.isArray(row.missing_information)
+        ? row.missing_information.filter((item): item is string => typeof item === "string")
+        : [],
+      qualifiedAt: row.qualified_at,
+    })),
+    total: result.count ?? 0,
+  };
+}
+
+export async function getNewLeadCount(): Promise<number> {
+  const supabase = await createClient();
+
+  const result = await supabase
+    .from("lead_list")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "new");
+
+  unwrap(result, "new lead count");
+
+  return result.count ?? 0;
+}
 
 export async function getProducts(
   params: ListParams<ProductSortKey>,

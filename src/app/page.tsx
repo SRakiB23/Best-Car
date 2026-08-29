@@ -1,4 +1,5 @@
 import { AiAdvisor } from "@/components/site/ai-advisor";
+import { ContactInquiry } from "@/components/site/contact-inquiry";
 import { FleetShowcase } from "@/components/site/fleet-showcase";
 import { Hero } from "@/components/site/hero";
 import { HowItWorks } from "@/components/site/how-it-works";
@@ -19,6 +20,7 @@ export default function StorefrontPage() {
         <WhyChooseUs />
         <FleetShowcase />
         <Testimonials />
+        <ContactInquiry />
       </main>
       <SiteFooter />
       <AiAdvisor />

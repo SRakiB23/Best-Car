@@ -7,6 +7,12 @@ export const aiConfig = {
   /** Flash is fast and cheap enough to sit in front of a booking form. */
   model: process.env.GEMINI_MODEL ?? "gemini-3.6-flash",
   timeoutMs: positiveInt(process.env.AI_TIMEOUT_MS, 20_000),
+  /**
+   * Staff qualifying a lead can wait; a customer watching a spinner cannot. The
+   * model is a thinking model and its latency swings widely for the same prompt,
+   * so the dashboard path gets a budget that survives a slow draw.
+   */
+  leadTimeoutMs: positiveInt(process.env.AI_LEAD_TIMEOUT_MS, 45_000),
   /** One retry only: the customer is watching a spinner. */
   maxAttempts: 2,
   maxPromptChars: 1_000,

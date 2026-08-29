@@ -1,36 +1,258 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Best Car --- AI-Powered Car Rental Platform
 
-## Getting Started
+Best Car is a production-shaped car-rental platform combining a customer
+storefront, staff dashboard, AI-powered vehicle recommendations, AI lead
+qualification, and automated high-priority lead notifications.
 
-First, run the development server:
+🚀 Live Demo
 
-```bash
+Customer: ADD_CUSTOMER_URL
+
+Admin: ADD_ADMIN_URL
+
+Repository: ADD_GITHUB_URL
+
+AI / Automation Demo: ADD_VIDEO_URL
+
+Demo accounts
+
+Role Email Password
+
+Admin admin@bestcar.com Admin@123
+Customer user@bestcar.com User@123
+
+These credentials are intended for the assessment/demo environment.
+
+✨ Key Features
+
+Customer Frontend
+
+Responsive car-rental storefront and fleet browsing
+
+Search, filtering, sorting and pagination
+
+Vehicle detail pages
+
+Date-based availability checking
+
+Booking and cancellation flow
+
+Customer account and booking history
+
+AI vehicle advisor
+
+Vehicle and contact inquiry forms
+
+Admin Dashboard
+
+Sales and earnings analytics
+
+Trends, best sellers, country sales and recent transactions
+
+Fleet/product management with image uploads
+
+Booking/order management
+
+AI-qualified lead inbox with filtering and sorting
+
+Lead status workflow and manual re-qualification
+
+Real-time in-app notifications
+
+Profile and store settings
+
+🤖 AI Features
+
+1. AI Vehicle Advisor
+
+Customers can describe what they need in natural language, for example:
+
+"Family of five, two weeks, automatic, four large suitcases, under
+$90 a day."
+
+The system:
+
+Uses Google Gemini to extract structured requirements.
+
+Retrieves real vehicle candidates from PostgreSQL.
+
+Checks real date availability before recommendation.
+
+Scores candidates deterministically in application code.
+
+Uses Gemini only to rank/explain the retrieved shortlist.
+
+Re-reads vehicle facts from the database before displaying them.
+
+This design keeps the database as the source of truth and reduces
+hallucinated vehicle, price and availability information.
+
+2. AI Lead Qualification
+
+Every customer inquiry can be automatically analyzed for:
+
+Lead score
+
+Priority
+
+Intent
+
+Budget
+
+Rental duration
+
+Vehicle preference
+
+Urgency
+
+Summary
+
+Recommended action
+
+Missing information
+
+The final priority is calculated by application logic rather than
+blindly trusting the model output.
+
+⚙️ Automation
+
+High-priority leads are automatically sent through:
+
+Customer → Next.js → Supabase → Gemini → Lead Qualification → Zapier →
+Secure Callback → Resend → Staff Email
+
+The customer request is not blocked by the notification workflow. Lead
+events are sent asynchronously, while the application remains
+responsible for authentication, validation, email rendering and
+security.
+
+Automation screenshot: Add the Zapier workflow image here.
+
+🏗️ Architecture
+
+                         ┌─────────────────┐
+                         │    Customer     │
+                         │    Browser      │
+                         └────────┬────────┘
+                                  │
+                                  ▼
+                         ┌─────────────────┐
+                         │    Next.js      │
+                         │ App Router/API  │
+                         └───────┬─┬───────┘
+                                 │ │
+                    ┌────────────┘ └──────────────┐
+                    ▼                             ▼
+             ┌─────────────┐               ┌─────────────┐
+             │  Supabase   │◄──────────────│   Gemini    │
+             │ PostgreSQL  │               │     AI      │
+             └──────┬──────┘               └─────────────┘
+                    │
+                    ▼
+             ┌─────────────┐
+             │   Zapier    │
+             │ Automation  │
+             └──────┬──────┘
+                    │
+                    ▼
+             ┌─────────────┐
+             │   Resend    │
+             │ Email Alert │
+             └──────┬──────┘
+                    ▼
+             ┌─────────────┐
+             │    Staff    │
+             └─────────────┘
+
+🧰 Tech Stack
+
+Layer Technology
+
+Framework Next.js 16, App Router
+Frontend React 19, TypeScript, Tailwind CSS
+Charts Recharts
+Database Supabase PostgreSQL
+Authentication Supabase Auth
+Storage Supabase Storage
+AI Google Gemini
+Validation Zod
+Automation Zapier Webhooks
+Email Resend
+Hosting Netlify
+
+🔐 Engineering & Security
+
+Supabase Row Level Security across application tables
+
+Server-only privileged database client
+
+Staff authorization checks
+
+Zod validation for request and AI output schemas
+
+Rate limiting for AI endpoints
+
+Authenticated webhook callback using a bearer secret
+
+Constant-time webhook secret comparison
+
+Booking idempotency
+
+PostgreSQL date-overlap constraint to prevent double booking
+
+AI interaction audit logging
+
+Model output grounding and validation
+
+🧠 AI Design Principle
+
+The central design decision is:
+
+The AI assists with interpretation and ranking; the database remains
+the source of truth.
+
+For vehicle recommendations, availability, pricing, vehicle
+specifications and booking state are retrieved from PostgreSQL rather
+than generated by the model.
+
+🛠️ Local Setup
+
+Requirements: Node.js 20+ and a Supabase project.
+
+git clone ADD_GITHUB_URL
+cd best-car
+npm install
+
+cp .env.example .env.local
+
+# Configure the required environment variables
+
+supabase link --project-ref YOUR_PROJECT_REF
+supabase db push
+
+npm run seed:demo
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+See .env.example for the complete environment configuration. Never
+expose server secrets through NEXT*PUBLIC*\* variables.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+📁 Main Architecture Areas
 
-## Learn More
+src/
+├── app/ # Customer, admin and API routes
+├── components/ # Reusable UI components
+├── lib/
+│ ├── ai/ # AI extraction, scoring and grounding
+│ ├── supabase/ # Database/auth clients
+│ └── ...
+└── ...
 
-To learn more about Next.js, take a look at the following resources:
+supabase/
+└── migrations/ # Database schema, functions, RLS and triggers
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The most important end-to-end scenario is:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Customer inquiry → AI qualification → priority decision → Zapier
+automation → secure application callback → staff email notification.

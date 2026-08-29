@@ -1,3 +1,4 @@
+import { AiAdvisor } from "@/components/site/ai-advisor";
 import { FleetShowcase } from "@/components/site/fleet-showcase";
 import { Hero } from "@/components/site/hero";
 import { HowItWorks } from "@/components/site/how-it-works";
@@ -20,6 +21,7 @@ export default function StorefrontPage() {
         <Testimonials />
       </main>
       <SiteFooter />
+      <AiAdvisor />
     </div>
   );
 }

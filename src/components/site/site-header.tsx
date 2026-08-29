@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { IconMenu2, IconX } from "@tabler/icons-react";
 
 import { Container } from "@/components/site/section";
@@ -21,16 +21,71 @@ const links = [
 
 export type HeaderViewer = { name: string; isStaff: boolean };
 
+/** Section ids behind the hash links, used for scroll-spy on the storefront. */
+const sectionIds = links
+  .map((link) => link.href.split("#")[1])
+  .filter((id): id is string => Boolean(id));
+
 export function SiteHeader({ viewer }: { viewer?: HeaderViewer | null }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState(() =>
-    pathname.startsWith("/cars") ? "/cars" : links[0].href,
-  );
+  const [scrolled, setScrolled] = useState(false);
+  const [spied, setSpied] = useState<string | null>(null);
+
+  // Off the storefront the route decides; on it, the scrolled-to section does.
+  const active =
+    pathname === "/"
+      ? (spied ?? links[0].href)
+      : pathname.startsWith("/cars")
+        ? "/cars"
+        : links[0].href;
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Highlight whichever section is crossing the middle of the viewport, so the
+  // nav keeps up with the smooth scroll instead of only updating on click.
+  useEffect(() => {
+    if (pathname !== "/") return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((entry) => entry.isIntersecting);
+        if (visible.length === 0) return;
+
+        const top = visible.reduce((best, entry) =>
+          entry.boundingClientRect.top < best.boundingClientRect.top ? entry : best,
+        );
+        setSpied(`/#${top.target.id}`);
+      },
+      { rootMargin: "-45% 0px -50% 0px" },
+    );
+
+    for (const id of sectionIds) {
+      const node = document.getElementById(id);
+      if (node) observer.observe(node);
+    }
+
+    return () => observer.disconnect();
+  }, [pathname]);
 
   return (
-    <header className="relative z-30 bg-night-900">
-      <Container className="flex h-18 items-center justify-between gap-4">
+    <header
+      className={cn(
+        "sticky top-0 z-40 transition-all duration-300 ease-out",
+        scrolled ? "bg-night-900/85 shadow-float backdrop-blur-md" : "bg-night-900",
+      )}
+    >
+      <Container
+        className={cn(
+          "flex items-center justify-between gap-4 transition-all duration-300 ease-out",
+          scrolled ? "h-16" : "h-18",
+        )}
+      >
         <Link href="/" className="shrink-0" aria-label="Best Car — home">
           <Image
             src="/client-side/BestCarLogo.jpeg"
@@ -38,7 +93,10 @@ export function SiteHeader({ viewer }: { viewer?: HeaderViewer | null }) {
             width={1024}
             height={513}
             priority
-            className="h-10 w-auto rounded-md sm:h-11"
+            className={cn(
+              "w-auto rounded-md transition-all duration-300 ease-out",
+              scrolled ? "h-9 sm:h-10" : "h-10 sm:h-11",
+            )}
           />
         </Link>
 
@@ -47,15 +105,22 @@ export function SiteHeader({ viewer }: { viewer?: HeaderViewer | null }) {
             <Link
               key={link.href}
               href={link.href}
-              onClick={() => setActive(link.href)}
+              onClick={() => setSpied(link.href)}
               className={cn(
-                "relative py-1 text-[13px] font-medium transition",
-                active === link.href
-                  ? "text-gold-300 after:absolute after:inset-x-0 after:-bottom-0.5 after:h-0.5 after:rounded-full after:bg-gold-300"
-                  : "text-white/80 hover:text-white",
+                "relative py-1 text-[13px] font-medium transition-colors duration-200",
+                active === link.href ? "text-gold-300" : "text-white/80 hover:text-white",
               )}
             >
               {link.label}
+
+              {/* Always rendered so the underline slides open rather than blinking in. */}
+              <span
+                aria-hidden
+                className={cn(
+                  "absolute inset-x-0 -bottom-0.5 h-0.5 origin-left rounded-full bg-gold-300 transition-transform duration-300 ease-out",
+                  active === link.href ? "scale-x-100" : "scale-x-0",
+                )}
+              />
             </Link>
           ))}
         </nav>
@@ -101,15 +166,23 @@ export function SiteHeader({ viewer }: { viewer?: HeaderViewer | null }) {
         </button>
       </Container>
 
-      <Container className={cn("lg:hidden", open ? "block" : "hidden")}>
-        <div className="mb-4 rounded-2xl border border-white/10 bg-night-800 p-4">
+      {/* grid-rows 0fr→1fr animates to the panel's natural height without measuring it. */}
+      <Container
+        inert={!open}
+        className={cn(
+          "grid transition-all duration-300 ease-out lg:hidden",
+          open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+        )}
+      >
+        <div className="min-h-0 overflow-hidden">
+          <div className="mb-4 rounded-2xl border border-white/10 bg-night-800 p-4">
           <nav className="flex flex-col">
             {links.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => {
-                  setActive(link.href);
+                  setSpied(link.href);
                   setOpen(false);
                 }}
                 className={cn(
@@ -149,6 +222,7 @@ export function SiteHeader({ viewer }: { viewer?: HeaderViewer | null }) {
                 </Link>
               </>
             )}
+            </div>
           </div>
         </div>
       </Container>

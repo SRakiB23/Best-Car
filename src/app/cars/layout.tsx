@@ -1,3 +1,4 @@
+import { AiAdvisor } from "@/components/site/ai-advisor";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeaderBar } from "@/components/site/site-header-bar";
 
@@ -7,6 +8,7 @@ export default function CarsLayout({ children }: { children: React.ReactNode }) 
       <SiteHeaderBar />
       <main className="flex-1">{children}</main>
       <SiteFooter />
+      <AiAdvisor />
     </div>
   );
 }

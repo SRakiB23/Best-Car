@@ -3,6 +3,7 @@ import "server-only";
 import { after } from "next/server";
 
 import { aiConfig } from "@/lib/ai/config";
+import { appOrigin } from "@/lib/app-url";
 import { AiError } from "@/lib/ai/errors";
 import { generateStructured } from "@/lib/ai/gemini";
 import { groundQualification } from "@/lib/ai/lead-grounding";
@@ -141,7 +142,7 @@ export async function qualifyLead(
       missing_information: value.missingInformation.join(", "),
       model: generated.model,
       qualified_at: qualifiedAt,
-      admin_url: `${appUrl()}/admin/leads`,
+      admin_url: `${appOrigin()}/admin/leads`,
     });
   });
 
@@ -220,14 +221,6 @@ export async function autoQualifyLead(leadId: string) {
       error instanceof Error ? error.message : error,
     );
   }
-}
-
-/**
- * Only used to build a link for the alert email. Falls back to the dev origin so
- * a missing variable costs a useful link, not the notification.
- */
-function appUrl() {
-  return (process.env.APP_URL ?? "http://localhost:3000").replace(/\/$/, "");
 }
 
 async function loadLead(leadId: string, db?: Db): Promise<LeadRecord> {

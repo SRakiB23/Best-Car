@@ -8,13 +8,22 @@ import { timingSafeEqual } from "node:crypto";
  * boot. None of these are ever prefixed with NEXT_PUBLIC_, so none of them can
  * reach the browser bundle.
  */
-export function notificationConfig() {
+export function emailSenderConfig() {
   const apiKey = process.env.RESEND_API_KEY?.trim();
-  const to = process.env.ADMIN_NOTIFICATION_EMAIL?.trim();
 
   // Resend's shared sender works without a verified domain, which keeps local
   // testing possible. Override it in production with your own domain.
   const from = process.env.RESEND_FROM_EMAIL?.trim() || "Best Car <onboarding@resend.dev>";
+
+  return { apiKey, from };
+}
+
+export function notificationConfig() {
+  const { apiKey, from } = emailSenderConfig();
+
+  // Only the staff alert has a fixed recipient. Password resets go to whoever
+  // asked, so they need the sender half of this config and nothing more.
+  const to = process.env.ADMIN_NOTIFICATION_EMAIL?.trim();
 
   const missing = [
     ["RESEND_API_KEY", apiKey],

@@ -120,6 +120,27 @@ export const inquiryLimiter = createRateLimiter({
   maxPerWindow: positiveInt(process.env.INQUIRY_MAX_PER_10_MINUTES, 100),
 });
 
+/**
+ * Password resets are checked twice, and the pair matters.
+ *
+ * By address, because the endpoint is open and every accepted request sends an
+ * email we pay for. By address alone is not enough though: an attacker rotating
+ * addresses could still fill one victim's inbox, so the same request is also
+ * counted against the email it names.
+ */
+export const passwordResetIpLimiter = createRateLimiter({
+  windowMs: 15 * minute,
+  maxPerKey: 5,
+  maxPerWindow: positiveInt(process.env.PASSWORD_RESET_MAX_PER_15_MINUTES, 60),
+});
+
+export const passwordResetEmailLimiter = createRateLimiter({
+  windowMs: 15 * minute,
+  maxPerKey: 3,
+  // Shares the ceiling above in spirit; kept generous so it never fires first.
+  maxPerWindow: 1_000,
+});
+
 /** Behind a shared secret already; this only bounds a leaked-secret flood. */
 export const notificationLimiter = createRateLimiter({
   windowMs: minute,

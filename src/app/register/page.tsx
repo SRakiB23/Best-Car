@@ -19,7 +19,14 @@ export default async function RegisterPage({
     <main className="grid min-h-dvh place-items-center bg-canvas px-6 py-12">
       <div className="w-full max-w-sm">
         <div className="mb-6 flex justify-center">
-          <Image src="/Logo.svg" alt="BestCar" width={150} height={46} priority />
+          <Image
+            src="/Logo.svg"
+            alt="BestCar"
+            width={150}
+            height={46}
+            priority
+            style={{ height: "auto" }}
+          />
         </div>
 
         <div className="rounded-2xl border border-line bg-white p-6 shadow-sm">

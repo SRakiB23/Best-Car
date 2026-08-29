@@ -22,7 +22,14 @@ export default async function LoginPage({
       <div className="w-full max-w-md">
         <div className="mb-6 flex justify-center">
           <Link href="/">
-            <Image src="/Logo.svg" alt="BestCar" width={150} height={46} priority />
+            <Image
+              src="/Logo.svg"
+              alt="BestCar"
+              width={150}
+              height={46}
+              priority
+              style={{ height: "auto" }}
+            />
           </Link>
         </div>
 

@@ -1,4 +1,4 @@
-import { adminRoot } from "./nav";
+import { adminRoot, customerHome } from "./nav";
 
 export type DemoRole = "admin" | "customer";
 
@@ -36,7 +36,7 @@ export const demoAccounts: DemoAccount[] = [
     blurb: "The customer side: browse cars and manage bookings.",
     email: "user@bestcar.com",
     password: "User@123",
-    destination: "/",
+    destination: customerHome,
     destinationLabel: "Home",
   },
 ];

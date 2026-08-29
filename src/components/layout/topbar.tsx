@@ -55,7 +55,6 @@ export function Topbar({ stores, notifications, messages, user }: TopbarData) {
 
   const profileLinks = [
     { label: "My profile", href: "/admin/profile", icon: <IconUser size={16} stroke={1.6} /> },
-    { label: "Account settings", href: "/admin/settings", icon: <IconSettings size={16} stroke={1.6} /> },
     {
       label: "Change password",
       href: "/admin/profile/password",

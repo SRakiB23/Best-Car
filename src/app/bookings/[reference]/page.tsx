@@ -82,9 +82,11 @@ export default async function BookingPage({
 
             <dl className="mt-6 grid gap-x-8 gap-y-4 sm:grid-cols-2">
               {rows.map((row) => (
-                <div key={row.label} className="flex flex-col gap-1">
+                <div key={row.label} className="flex min-w-0 flex-col gap-1">
                   <dt className="text-xs uppercase tracking-wide text-ink-400">{row.label}</dt>
-                  <dd className="text-sm font-medium text-ink-900">{row.value}</dd>
+                  {/* One of these rows is an email address, and a grid track
+                      sized to an unbroken string scrolls the whole page. */}
+                  <dd className="break-words text-sm font-medium text-ink-900">{row.value}</dd>
                 </div>
               ))}
             </dl>

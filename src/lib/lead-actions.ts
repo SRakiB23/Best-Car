@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 
+import { autoQualifyLead } from "@/services/ai/leads";
 import type { FormState } from "./form-state";
 import { clientIp, inquiryLimiter } from "./rate-limit";
 import { createClient } from "./supabase/server";
@@ -31,6 +32,7 @@ const messages: Record<string, string> = {
   INVALID_MESSAGE: "Please describe what you need in a little more detail.",
   INVALID_DATES: "Please check those dates — the return cannot be before the pick-up.",
   MISSING_DATES: "Please tell us your pick-up and return dates.",
+  MISSING_PHONE: "Please add a phone number so we can reach you.",
   TOO_MANY_INQUIRIES: "We already have your recent messages. We will be in touch shortly.",
 };
 
@@ -79,7 +81,10 @@ export async function submitInquiry(
   const errors: Record<string, string> = {};
   if (name.length < 2) errors.name = "Please tell us your name.";
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) errors.email = "Enter a valid email address.";
-  if (phone && (phone.length < 6 || phone.length > 32)) errors.phone = "Enter a valid phone number.";
+  // Required: a rental gets confirmed on the phone, and an emailed reply to a
+  // high-priority lead loses the hours that made it high-priority.
+  if (!phone) errors.phone = "Please add a phone number so we can reach you.";
+  else if (phone.length < 6 || phone.length > 32) errors.phone = "Enter a valid phone number.";
   if (message.length < 15) errors.message = "Tell us a little more so we can help properly.";
   if (message.length > 2000) errors.message = "Please keep your message under 2000 characters.";
 
@@ -126,8 +131,8 @@ export async function submitInquiry(
 
   const leadId = readLeadId(data);
 
-  // The lead is saved. Notifying Zapier runs after the response is sent, so a
-  // slow or broken webhook cannot delay or fail the visitor's submission.
+  // The lead is saved. Everything below runs after the response is sent, so a
+  // slow webhook or a slow model cannot delay or fail the visitor's submission.
   if (leadId) {
     after(async () => {
       await sendLeadToZapier({
@@ -135,11 +140,17 @@ export async function submitInquiry(
         lead_id: leadId,
         customer_name: name,
         customer_email: email,
+        customer_phone: phone,
         vehicle: await vehicleName(vehicleId),
         pickup_date: pickupDate,
         return_date: returnDate,
         message,
       });
+
+      // Scored immediately rather than waiting for someone to press Qualify.
+      // This is what makes the high-priority alert arrive while the customer is
+      // still on the page. It swallows its own failures.
+      await autoQualifyLead(leadId);
     });
   }
 

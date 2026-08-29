@@ -67,7 +67,7 @@ export function Hero() {
 
       {/* The panel straddles the dark fill and the light section below. */}
       {/* Only enough bottom room to clear the panel; the next section supplies the real gap. */}
-      <Container className="relative z-20 -mt-10 pb-8 sm:-mt-12 sm:pb-10 lg:-mt-16 lg:pb-12">
+      <Container className="relative z-20 -mt-4 pb-8 sm:-mt-12 sm:pb-10 lg:-mt-16 lg:pb-12">
         <BookingSearch />
       </Container>
     </section>

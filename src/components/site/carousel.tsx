@@ -130,7 +130,7 @@ export function Carousel({
           className={cn(
             "transition active:scale-95",
             controls === "labels"
-              ? cn("inline-flex items-center gap-2 text-sm font-medium", styles.label)
+              ? cn("inline-flex items-center gap-2 text-sm font-medium max-sm:-m-2.5 max-sm:p-2.5", styles.label)
               : cn(
                   "grid size-11 place-items-center rounded-full border hover:scale-105",
                   styles.control,
@@ -149,11 +149,17 @@ export function Carousel({
               aria-label={`Go to slide ${index + 1}`}
               aria-current={index === active}
               onClick={() => goTo(index)}
-              className={cn(
-                "h-1.5 rounded-full transition-all duration-300",
-                index === active ? cn("w-6", styles.activeDot) : cn("w-1.5", styles.dot),
-              )}
-            />
+              /* Padding rather than a bigger dot: a 6px visual works, a 6px tap
+                 target does not, and neighbours were close enough to mis-hit. */
+              className="p-2"
+            >
+              <span
+                className={cn(
+                  "block h-1.5 rounded-full transition-all duration-300",
+                  index === active ? cn("w-6", styles.activeDot) : cn("w-1.5", styles.dot),
+                )}
+              />
+            </button>
           ))}
         </div>
 
@@ -164,7 +170,7 @@ export function Carousel({
           className={cn(
             "transition active:scale-95",
             controls === "labels"
-              ? cn("inline-flex items-center gap-2 text-sm font-medium", styles.label)
+              ? cn("inline-flex items-center gap-2 text-sm font-medium max-sm:-m-2.5 max-sm:p-2.5", styles.label)
               : cn(
                   "grid size-11 place-items-center rounded-full border hover:scale-105",
                   styles.control,

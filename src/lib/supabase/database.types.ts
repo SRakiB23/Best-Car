@@ -633,6 +633,15 @@ export type Database = {
         }
         Returns: Json
       }
+      apply_lead_qualification_internal: {
+        Args: {
+          p_interaction_id?: string
+          p_lead_id: string
+          p_model: string
+          p_result: Json
+        }
+        Returns: Json
+      }
       best_sellers: {
         Args: { max_rows: number; window_days: number }
         Returns: {

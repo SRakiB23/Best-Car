@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { Json } from "@/lib/supabase/database.types";
-import { createServiceClient } from "@/lib/supabase/service";
+import { createServiceClient, type Db } from "@/lib/supabase/service";
 
 /** Mirrors the feature whitelist inside log_ai_interaction. */
 export type AiFeature = "vehicle_recommendation" | "lead_qualification";
@@ -26,14 +26,13 @@ export type AiInteraction = {
  * advisor is open to visitors, and granting anonymous callers a write path into
  * the audit table let anyone holding the publishable key forge rows in it.
  */
-export async function logAiInteraction(interaction: AiInteraction): Promise<string | null> {
+export async function logAiInteraction(
+  interaction: AiInteraction,
+  /** Reuses the automatic path's client rather than opening a second one. */
+  db?: Db,
+): Promise<string | null> {
   try {
-    const supabase = createServiceClient();
-
-    if (!supabase) {
-      console.error("log_ai_interaction skipped: SUPABASE_SECRET_KEY is not set");
-      return null;
-    }
+    const supabase = db ?? createServiceClient();
 
     const { data, error } = await supabase.rpc("log_ai_interaction", {
       p_feature: interaction.feature,

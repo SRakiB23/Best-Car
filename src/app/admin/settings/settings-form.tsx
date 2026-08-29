@@ -61,7 +61,7 @@ export function SettingsForm({ preferences }: { preferences: Preferences }) {
           </Field>
         </CardBody>
 
-        <div className="flex items-center justify-between gap-3 border-t border-line px-5 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-5 py-4">
           <FormMessage state={state} />
           <SubmitButton>{t("Save settings")}</SubmitButton>
         </div>

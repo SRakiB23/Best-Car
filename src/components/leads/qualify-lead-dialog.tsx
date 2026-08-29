@@ -73,7 +73,7 @@ export function QualifyLeadDialog({
         {phase === "done" && result ? <ResultPanel result={result} currency={currency} /> : null}
       </div>
 
-      <div className="flex items-center justify-between gap-3 border-t border-line px-5 py-3.5">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-5 py-3.5">
         <p className="text-[11px] text-ink-400">
           {result ? `${result.model} · ${(elapsedMs / 1000).toFixed(1)}s` : "\u00a0"}
         </p>

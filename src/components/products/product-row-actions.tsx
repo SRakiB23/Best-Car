@@ -13,7 +13,7 @@ import { deleteProduct } from "@/lib/product-actions";
 import { ProductModal, type EditableProduct } from "./product-modal";
 
 const iconAction =
-  "grid size-8 place-items-center rounded-lg text-ink-500 transition hover:bg-canvas hover:text-navy-900";
+  "grid size-9 place-items-center rounded-lg text-ink-500 transition hover:bg-canvas hover:text-navy-900 sm:size-8";
 
 function RemoveButton() {
   const { pending } = useFormStatus();
@@ -47,7 +47,12 @@ export function ProductRowActions({
   return (
     <div className="flex items-center justify-end gap-0.5">
       <Tooltip label={t("Edit product")}>
-        <button type="button" className={iconAction} onClick={() => setEditing(true)}>
+        <button
+          type="button"
+          aria-label={t("Edit product")}
+          className={iconAction}
+          onClick={() => setEditing(true)}
+        >
           <IconPencil size={16} stroke={1.8} />
         </button>
       </Tooltip>
@@ -56,6 +61,7 @@ export function ProductRowActions({
         <Tooltip label={t("Delete product")}>
           <button
             type="button"
+            aria-label={t("Delete product")}
             className={`${iconAction} hover:text-negative`}
             onClick={() => setConfirming(true)}
           >

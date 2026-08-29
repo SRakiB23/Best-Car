@@ -39,8 +39,10 @@ export function VehicleCard({ vehicle }: { vehicle: Vehicle }) {
       <div className="flex flex-1 flex-col p-5">
         <h3 className="text-xl font-bold text-ink-900">{vehicle.name}</h3>
 
-        <div className="mt-auto flex items-center justify-between gap-3 pt-5">
-          <p className="text-xl font-bold text-ink-900">
+        {/* Wraps rather than overflows: the button carries `shrink-0`, so a
+            four-figure daily rate in a narrow column has nowhere else to go. */}
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-3 pt-5">
+          <p className="min-w-0 text-xl font-bold text-ink-900">
             ${vehicle.pricePerDay.toFixed(2)}
             <span className="ml-1 text-sm font-normal text-ink-500">/ day</span>
           </p>

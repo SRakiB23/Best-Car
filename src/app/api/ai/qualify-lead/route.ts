@@ -53,7 +53,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await qualifyLead(parsed.data.leadId, viewer.id);
+    const result = await qualifyLead(parsed.data.leadId, { staffId: viewer.id });
     return Response.json(result, { status: 200 });
   } catch (error) {
     const aiError = toAiError(error);

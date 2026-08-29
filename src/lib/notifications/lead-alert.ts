@@ -78,11 +78,6 @@ function budgetLine(alert: LeadAlert) {
   return `$${alert.estimated_budget_amount.toFixed(2)}${period}`;
 }
 
-function datesLine(alert: LeadAlert) {
-  if (!alert.pickup_date) return null;
-  return alert.return_date ? `${alert.pickup_date} → ${alert.return_date}` : alert.pickup_date;
-}
-
 /** Enum values arrive as snake_case; nobody wants to read that in an email. */
 function humanise(value: string | null) {
   if (!value) return null;

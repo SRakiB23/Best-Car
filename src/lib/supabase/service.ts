@@ -1,23 +1,31 @@
 import "server-only";
 
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { createClient as createSupabaseClient, type SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "./database.types";
 
+export type Db = SupabaseClient<Database>;
+
 /**
- * Bypasses row level security, so it is deliberately hard to reach: only the
- * audit log uses it, and only because that write must happen for visitors who
- * have no session at all. Everything a signed-in person does goes through
- * `./server`, where their own policies still apply.
+ * Bypasses row level security. Used only where there is genuinely no user to act
+ * as: the automatic lead qualification that runs after a visitor submits an
+ * inquiry and must write a score no visitor is allowed to write, and the AI
+ * audit log, which records calls made by visitors who have no session at all.
+ *
+ * `server-only` keeps this out of the client bundle, and the key is read at call
+ * time so a missing one is an error on that one code path rather than at boot.
  */
-export function createServiceClient() {
-  const key = process.env.SUPABASE_SECRET_KEY?.trim();
+export function createServiceClient(): Db {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const secret =
+    process.env.SUPABASE_SECRET_KEY?.trim() || process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 
-  // Optional on purpose. Without it the audit write is skipped and logged,
-  // which is the same outcome as any other failure of a best-effort log.
-  if (!key) return null;
+  if (!url || !secret) {
+    throw new Error("SUPABASE_SECRET_KEY is not set; the privileged client is unavailable.");
+  }
 
-  return createSupabaseClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, key, {
+  return createSupabaseClient<Database>(url, secret, {
+    // No cookies, no refresh: this client is never tied to a browser session.
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }

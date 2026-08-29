@@ -10,7 +10,7 @@ Customer: https://best-cars1.netlify.app
 
 Admin: https://best-cars1.netlify.app/admin
 
-AI / Automation Demo: ADD_VIDEO_URL
+AI / Automation Demo: https://www.awesomescreenshot.com/video/56020398?key=157b69265d404ea4b0041796db7d808b
 
 Demo accounts
 

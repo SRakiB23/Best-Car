@@ -3,8 +3,11 @@ import "server-only";
 import type { Json } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 
+/** Mirrors the feature whitelist inside log_ai_interaction. */
+export type AiFeature = "vehicle_recommendation" | "lead_qualification";
+
 export type AiInteraction = {
-  feature: "vehicle_recommendation";
+  feature: AiFeature;
   model: string;
   request: Json;
   response?: Json | null;

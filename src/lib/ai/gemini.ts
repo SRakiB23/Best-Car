@@ -30,6 +30,12 @@ type GenerateOptions<T> = {
   validator: ZodType<T>;
   temperature?: number;
   signal?: AbortSignal;
+  timeoutMs?: number;
+  /**
+   * Lower levels cut the hidden reasoning the model bills and waits for. Worth
+   * it on a fixed classification, where a long deliberation buys nothing.
+   */
+  thinkingLevel?: "minimal" | "low" | "medium" | "high";
 };
 
 export type GenerateResult<T> = {
@@ -47,7 +53,15 @@ type GeminiResponse = {
     candidatesTokenCount?: number;
     totalTokenCount?: number;
   };
-  error?: { message?: string; status?: string };
+  error?: {
+    message?: string;
+    status?: string;
+    details?: {
+      "@type"?: string;
+      retryDelay?: string;
+      violations?: { quotaId?: string; quotaValue?: string }[];
+    }[];
+  };
 };
 
 export async function generateStructured<T>(
@@ -96,7 +110,14 @@ export async function generateStructured<T>(
 
       if (attempt >= aiConfig.maxAttempts || !isRetryable(lastError)) throw lastError;
 
-      await sleep(250 * attempt);
+      // A 429 is a quota window, not a blip: 250ms lands inside the same window
+      // and burns the only retry we have. Google tells us how long to wait.
+      const backoff =
+        lastError.code === "AI_RATE_LIMITED"
+          ? Math.min(lastError.retryAfterMs ?? 2_000 * attempt, 10_000)
+          : 250 * attempt;
+
+      await sleep(backoff);
     }
   }
 
@@ -105,7 +126,8 @@ export async function generateStructured<T>(
 
 async function callGemini<T>(model: string, options: GenerateOptions<T>) {
   const key = geminiApiKey();
-  const timeout = AbortSignal.timeout(aiConfig.timeoutMs);
+  const timeoutMs = options.timeoutMs ?? aiConfig.timeoutMs;
+  const timeout = AbortSignal.timeout(timeoutMs);
   const signal = options.signal ? AbortSignal.any([options.signal, timeout]) : timeout;
 
   let response: Response;
@@ -120,6 +142,9 @@ async function callGemini<T>(model: string, options: GenerateOptions<T>) {
           responseMimeType: "application/json",
           responseSchema: options.responseSchema,
           temperature: options.temperature ?? 0.2,
+          ...(options.thinkingLevel
+            ? { thinkingConfig: { thinkingLevel: options.thinkingLevel } }
+            : {}),
         },
       }),
       signal,
@@ -127,7 +152,7 @@ async function callGemini<T>(model: string, options: GenerateOptions<T>) {
     });
   } catch (cause) {
     if (timeout.aborted) {
-      throw new AiError("AI_TIMEOUT", `Model call exceeded ${aiConfig.timeoutMs}ms`, { cause });
+      throw new AiError("AI_TIMEOUT", `Model call exceeded ${timeoutMs}ms`, { cause });
     }
     throw new AiError("AI_UPSTREAM", "Could not reach the model provider", { cause });
   }
@@ -136,13 +161,39 @@ async function callGemini<T>(model: string, options: GenerateOptions<T>) {
 
   if (!response.ok) {
     const detail = payload?.error?.message ?? response.statusText;
-    const code = response.status === 429 ? "AI_RATE_LIMITED" : "AI_UPSTREAM";
-    throw new AiError(code, `Gemini ${response.status}: ${detail}`);
+
+    if (response.status === 429) {
+      // A per-day quota will not clear on a retry, and telling staff to "wait a
+      // moment" when the answer is "tomorrow" wastes their time.
+      const daily = quotaViolations(payload).some((id) => id.includes("PerDay"));
+
+      throw new AiError(
+        daily ? "AI_QUOTA_EXHAUSTED" : "AI_RATE_LIMITED",
+        `Gemini 429: ${detail}`,
+        { retryAfterMs: retryDelayMs(payload) },
+      );
+    }
+
+    throw new AiError("AI_UPSTREAM", `Gemini ${response.status}: ${detail}`);
   }
 
   if (!payload) throw new AiError("AI_UPSTREAM", "Empty response from Gemini");
 
   return payload;
+}
+
+function quotaViolations(payload: GeminiResponse | null) {
+  return (payload?.error?.details ?? []).flatMap((detail) =>
+    (detail.violations ?? []).map((violation) => violation.quotaId ?? ""),
+  );
+}
+
+/** `retryDelay` arrives as a protobuf duration string, e.g. "18s". */
+function retryDelayMs(payload: GeminiResponse | null) {
+  const raw = payload?.error?.details?.find((detail) => detail.retryDelay)?.retryDelay;
+  const seconds = raw ? Number(raw.replace(/s$/, "")) : NaN;
+
+  return Number.isFinite(seconds) && seconds > 0 ? Math.ceil(seconds * 1_000) : undefined;
 }
 
 function readText(payload: GeminiResponse) {

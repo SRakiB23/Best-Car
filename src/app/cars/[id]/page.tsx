@@ -7,6 +7,7 @@ import { IconArrowLeft, IconCar, IconGasStation, IconManualGearbox, IconUsers } 
 
 import { BookingFlow } from "@/components/site/booking-flow";
 import { Container } from "@/components/site/section";
+import { VehicleInquiry } from "@/components/site/vehicle-inquiry";
 import { currentViewer } from "@/lib/auth";
 import { getBookedRanges, getVehicle } from "@/lib/vehicles";
 
@@ -102,6 +103,8 @@ export default async function VehiclePage({ params }: { params: Promise<{ id: st
           <BookingFlow vehicle={vehicle} bookedRanges={bookedRanges} customer={customer} />
         </div>
       </Container>
+
+      <VehicleInquiry vehicleId={vehicle.id} vehicleName={vehicle.name} />
     </section>
   );
 }

@@ -1,5 +1,12 @@
 import type { Icon } from "@tabler/icons-react";
-import { IconBox, IconDiscount, IconGift, IconLayoutGrid, IconUserEdit } from "@tabler/icons-react";
+import {
+  IconBox,
+  IconDiscount,
+  IconGift,
+  IconLayoutGrid,
+  IconUserEdit,
+  IconUserSearch,
+} from "@tabler/icons-react";
 
 const icons = "/sidebar-icons";
 
@@ -82,6 +89,7 @@ export const navSections: NavSection[] = [
           { label: "POS Orders", href: "/admin/sales/pos-orders" },
         ],
       },
+      { label: "Leads", href: "/admin/leads", icon: IconUserSearch },
       { label: "Invoices", href: "/admin/invoices", icon: `${icons}/invoice.svg` },
       { label: "Sales Return", href: "/admin/sales-return", icon: `${icons}/sales-return.svg` },
       { label: "Quotation", href: "/admin/quotation", icon: `${icons}/quotation.svg` },
